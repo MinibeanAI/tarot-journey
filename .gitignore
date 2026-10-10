@@ -1,0 +1,25 @@
+# 密钥与本地配置 —— 永远不要提交
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+*.key
+*.pem
+
+# 依赖与构建产物
+node_modules/
+.wrangler/
+dist/
+
+# 日志与临时文件
+*.log
+logs/
+.DS_Store
+Thumbs.db
+
+# 素材原稿 / 截图 / 本地工具
+public/assets/raw/
+screens/
+tools/
+reference.png

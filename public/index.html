@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#8e86c9">
+<title>Tarot Journey · 塔罗显化之旅</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22 fill=%22%23c9a45c%22%3E✦%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="stage">
+<main id="app" class="phone" aria-live="polite">
+
+  <!-- 01 HOME -->
+  <section class="screen" id="s-home" data-screen="home">
+    <div class="bg" style="--img:url(assets/bg_home_p.jpg);--pos:50% 100%"></div>
+    <img class="moon" src="assets/moon.png" alt="">
+    <div class="shade shade-home"></div>
+    <button class="icon-btn music" id="musicBtn" aria-label="背景音乐开关" aria-pressed="true">
+      <svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/><path class="slash" d="M3 3l18 18"/></svg>
+    </button>
+    <div class="home-copy">
+      <h1 class="brand"><span>TAROT</span><span>JOURNEY</span></h1>
+      <div class="brand-cn">塔罗显化之旅</div>
+      <p class="tagline">每一次抽牌<br>都是一次<br>更靠近自己的旅程</p>
+    </div>
+    <div class="bottom-cta">
+      <button class="btn btn-cream wide" data-go="theme">开启旅程<i class="arr"></i></button>
+    </div>
+  </section>
+
+  <!-- 02 THEME -->
+  <section class="screen" id="s-theme" data-screen="theme">
+    <div class="bg bg-soft" style="--img:url(assets/bg_tower_alt.jpg);--pos:50% 50%"></div>
+    <div class="theme-arch">
+      <button class="icon-btn back" data-back aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <span class="sparkle tr">✦</span>
+      <span class="sparkle top">✦</span>
+      <h2 class="title-cn">此刻<br>你最想得到什么答案？</h2>
+      <p class="sub-cn">选择一个主题，走进你的命运之塔</p>
+      <div class="tiles">
+        <button class="tile" data-theme="career"><div class="tile-img" style="--img:url(assets/theme_career.jpg)"></div><div class="tile-label"><b>事业</b><small>工作 · 发展 · 选择</small></div></button>
+        <button class="tile" data-theme="wealth"><div class="tile-img" style="--img:url(assets/theme_wealth.jpg)"></div><div class="tile-label"><b>财富</b><small>收入 · 机会 · 价值</small></div></button>
+        <button class="tile" data-theme="love"><div class="tile-img" style="--img:url(assets/theme_love.jpg)"></div><div class="tile-label"><b>爱情</b><small>关系 · 情感 · 连接</small></div></button>
+        <button class="tile" data-theme="self"><div class="tile-img" style="--img:url(assets/theme_self.jpg);--pos:62% 40%"></div><div class="tile-label"><b>自我</b><small>成长 · 状态 · 方向</small></div></button>
+      </div>
+      <button class="btn btn-cream own" data-theme="custom">我有自己的问题<i class="arr"></i></button>
+    </div>
+  </section>
+
+  <!-- 03 QUESTION -->
+  <section class="screen" id="s-question" data-screen="question">
+    <div class="bg bg-q" style="--img:url(assets/bg_past.jpg);--pos:66% 100%"></div>
+    <div class="shade shade-bottom"></div>
+    <button class="icon-btn back light" data-back aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="q-panel panel">
+      <div class="q-head">
+        <h3>写下你此刻的问题</h3>
+        <span class="chip" id="themeChip">事业</span>
+      </div>
+      <label class="q-box">
+        <svg class="q-ico" viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/></svg>
+        <textarea id="qInput" maxlength="120" rows="3" placeholder="例如：我现在应该勇敢开始新的事业吗？"></textarea>
+        <span class="counter"><b id="qCount">0</b>/120</span>
+      </label>
+      <p class="q-hint" id="qHint">已为你填入示例问题，可直接修改</p>
+      <button class="btn btn-indigo wide" id="enterTower">进入命运之塔<i class="arr"></i></button>
+    </div>
+  </section>
+
+  <!-- DRAW: one screen, pick 3 cards from the shuffled fan -->
+  <section class="screen" id="s-pick" data-screen="pick">
+    <div class="bg" id="pickBg"></div>
+    <div class="shade shade-pick"></div>
+    <div class="pick-dim" id="pickDim"></div>
+    <header class="topbar">
+      <button class="icon-btn back light" data-back aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    </header>
+    <div class="pick-head">
+      <h2 class="draw-title">从中抽取 <b>3</b> 张牌</h2>
+      <div class="draw-count"><span id="drawCount">已抽取 <b>0</b>/3 张</span><i>·</i><span id="pickCount">剩余 22 张</span></div>
+      <p class="draw-q" id="drawQ"></p>
+    </div>
+    <div class="spread" id="spread" aria-label="牌阵：左右滑动挑选，点击选中"></div>
+    <div class="slots" id="slots">
+      <button class="slot" aria-label="过去"><div class="slot-box"></div><span>I · 过去</span></button>
+      <button class="slot" aria-label="现在"><div class="slot-box"></div><span>II · 现在</span></button>
+      <button class="slot" aria-label="未来"><div class="slot-box"></div><span>III · 未来</span></button>
+    </div>
+    <div class="pick-hint"><span id="pickHint">左右滑动挑一张，点击选中</span></div>
+    <div class="bottom-cta draw-cta"><button class="btn btn-indigo wide" id="flipAll">翻开我的三张牌<i class="arr"></i></button></div>
+    <div class="ritual-intro" id="ritualIntro" role="button" aria-label="继续">
+      <div class="ri-breath"><i></i><i></i></div>
+      <h3>深呼吸，默念你的问题</h3>
+      <p id="riQ"></p>
+      <span class="ri-tap">轻触继续</span>
+    </div>
+  </section>
+
+  <!-- REVEAL: swipe between the three revealed cards -->
+  <section class="screen" id="s-reveal" data-screen="reveal">
+    <div class="bg" id="revealBg" style="--img:url(assets/bg_present_p.jpg);--pos:50% 100%"></div>
+    <div class="shade shade-reveal"></div>
+    <header class="topbar">
+      <button class="icon-btn back light" data-back aria-label="返回抽牌"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    </header>
+    <div class="rv-head"><h3>你的三张牌</h3><p id="rvQ"></p></div>
+    <div class="rv-track" id="rvTrack" aria-label="左右滑动查看三张牌"></div>
+    <div class="car-dots rv-dots" id="rvDots"><i></i><i></i><i></i></div>
+    <div class="bottom-cta tight">
+      <button class="btn btn-cream wide" id="revealNext">查看完整解读<i class="arr"></i></button>
+    </div>
+  </section>
+
+  <!-- LOADING / ERROR -->
+  <section class="screen" id="s-loading" data-screen="loading">
+    <div class="bg" style="--img:url(assets/bg_future.jpg);--pos:83% 50%"></div>
+    <div class="shade shade-loading"></div>
+    <div class="glow-orb"></div>
+    <div class="stars" id="stars"></div>
+    <div class="load-box panel" id="loadBox">
+      <div class="load-ring"><span></span><span></span><span></span></div>
+      <h3 id="loadTitle">AI 正在连接你的三张牌</h3>
+      <p id="loadSub">塔顶的星光正在汇聚…</p>
+    </div>
+    <div class="load-box panel error" id="errBox" hidden>
+      <div class="err-ico">☾</div>
+      <h3>星光暂时没有回应</h3>
+      <p>解读生成失败，可能是网络波动。你的三张牌已为你保留。</p>
+      <div class="row">
+        <button class="btn btn-ghost" id="errBack">返回</button>
+        <button class="btn btn-indigo" id="errRetry">重新解读</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 FINAL -->
+  <section class="screen" id="s-final" data-screen="final">
+    <div class="final-scroll" id="finalScroll">
+      <header class="final-top">
+        <button class="icon-btn home-ico" data-go="home" aria-label="回到首页"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></button>
+        <h3 class="sec-title">你的三张牌</h3>
+        <span class="q-mini" id="finalQ"></span>
+      </header>
+      <div class="recap" id="recap" aria-label="左右滑动查看三张牌"></div>
+      <div class="car-dots" id="recapDots"><i></i><i></i><i></i></div>
+      <div class="pill-title">AI 为你解读这三个线索</div>
+      <article class="reading" id="reading"></article>
+      <div class="divider"><span>✦</span></div>
+      <section class="creator-sec">
+        <h3 class="sec-title big">第 23 张 · 你的显化牌</h3>
+        <p class="creator-note">根据你的三张牌生成的专属显化卡</p>
+        <div class="creator-stage" id="creatorStage">
+          <div class="burst"></div>
+          <div class="converge" id="converge"></div>
+          <div class="flip-card big" id="creatorCard" role="button" tabindex="0" aria-label="轻触揭晓你的显化牌"></div>
+          <div class="tap-hint" id="tapHint">轻触揭晓</div>
+        </div>
+        <div class="creator-after" id="creatorAfter">
+          <p class="quote" id="quote"></p>
+          <p class="affirm" id="affirm"></p>
+          <div class="actions">
+            <button class="btn btn-indigo wide" id="saveBtn">保存图片</button>
+            <div class="row3">
+              <button class="btn btn-ghost sm" id="againBtn">再抽一次</button>
+              <button class="btn btn-ghost sm" id="changeBtn">换个问题</button>
+              <button class="btn btn-ghost sm" id="shareBtn">分享</button>
+            </div>
+          </div>
+        </div>
+        <p class="proto-note">解读由 AI 实时生成；离线时使用本地模板</p>
+      </section>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status"></div>
+</main>
+</div>
+<script src="assets/creator-embed.js"></script>
+<script src="assets/art-manifest.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

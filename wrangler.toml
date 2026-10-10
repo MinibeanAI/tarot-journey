@@ -1,0 +1,9 @@
+name = "tarot-journey"
+pages_build_output_dir = "public"
+compatibility_date = "2026-09-01"
+
+# 可选：绑定一个 KV 命名空间，让限流跨实例生效（每 IP 10 次/10 分钟、全站每天 300 次）。
+# 先创建：npx wrangler kv namespace create TAROT_KV，再把下面取消注释并填入 id。
+# [[kv_namespaces]]
+# binding = "TAROT_KV"
+# id = "<your-kv-namespace-id>"

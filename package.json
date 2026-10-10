@@ -1,0 +1,14 @@
+{
+  "name": "tarot-journey",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AI塔罗显化 · 塔罗显化之旅",
+  "scripts": {
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^3.114.0"
+  },
+  "type": "module"
+}
