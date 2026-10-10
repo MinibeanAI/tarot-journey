@@ -59,6 +59,15 @@ npx wrangler pages deploy
 
 也可以在 Cloudflare 控制台把本仓库连接到 Pages（构建命令留空，输出目录填 `public`），并在「设置 → 变量和机密」中添加上述两个密钥。
 
+## 方式二：部署为 Cloudflare Worker（当前线上版本）
+
+`worker/index.js` 是一个独立 Worker：`/api/reading` 走同样的 AI 解读逻辑，其余路径直接从本仓库 `public/` 目录（raw.githubusercontent.com）读取静态文件，并缓存 1 小时。
+
+- 线上地址：https://tarot-journey.sunxiaodousxd.workers.dev
+- 绑定：Secrets `DEEPSEEK_API_KEY`、`OPENAI_API_KEY`；纯文本变量 `ASSET_REF`（要读取的提交 SHA 或分支，默认 `main`）
+- 更新网页：推送到 GitHub 后，把 `ASSET_REF` 改成新的提交 SHA（或设为 `main` 并等待缓存过期）
+- 注意：`*.workers.dev` 在中国大陆访问可能不稳定，绑定自定义域名可以解决
+
 ## 接口说明
 
 `POST /api/reading`
