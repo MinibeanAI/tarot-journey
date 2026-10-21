@@ -91,3 +91,5 @@ INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
+
+NOTE: title-cn.woff2 is a subset (web-font) of Smiley Sans (得意黑) by atelierAnchor, licensed under SIL OFL 1.1. Per the OFL Reserved Font Name clause, the modified (subsetted) font is renamed "TJ Title CN".

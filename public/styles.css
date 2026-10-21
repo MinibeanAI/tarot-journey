@@ -504,5 +504,5 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 @font-face{font-family:"TJ Cinzel Title";src:url(assets/fonts/cinzel/cinzel-500-title.woff2) format("woff2");font-weight:500;font-display:swap}
 .brand{font-family:"TJ Cinzel Title",var(--cn)!important;font-weight:500!important;font-size:46px!important;letter-spacing:.12em!important;line-height:1.08!important}
 /* home CN title: Smiley Sans 得意黑 (SIL OFL, self-hosted subset) */
-@font-face{font-family:"TJ Smiley Title";src:url(assets/fonts/smiley/smiley-title.woff2) format("woff2");font-display:swap}
-.brand-cn{font-family:"TJ Smiley Title",var(--cn)!important;font-size:31px!important;letter-spacing:.12em!important}
+@font-face{font-family:"TJ Title CN";src:url(assets/fonts/title-cn/title-cn.woff2) format("woff2");font-display:swap}
+.brand-cn{font-family:"TJ Title CN",var(--cn)!important;font-size:31px!important;letter-spacing:.12em!important}
