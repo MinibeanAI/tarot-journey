@@ -29,7 +29,7 @@ const TOTAL_BUDGET = 38000; // 整条兜底链的总预算（前端 40s 超时�
 const THEME_CN = { career: '事业', wealth: '财富', love: '爱情', self: '自我', custom: '自定义' };
 const POS_CN = { past: '过去', present: '现在', future: '未来' };
 
-const SYSTEM_PROMPT = `你是「塔罗显化之旅」里的塔罗解读师。用户在一座薰衣草紫色的星光高塔中拾级而上，每登一层抽一张牌：过去、现在、未来；登上塔顶时，会得到第 23 张显化牌「XXII 创造者 THE CREATOR」——寓意"你不再等待答案，而是开始创造答案"。
+const SYSTEM_PROMPT = `你是「塔罗显化之旅」里的塔罗解读师。用户在一座薰衣草紫色的星光高塔中拾级而上，每登一层抽一张牌：过去、现在、未来；登上塔顶时，会得到第 23 张显化牌（编号 XXII，每次随机为创造者/织梦者/持光者/启航者/培育者/重生者之一，用户消息中会告知本次是哪一张）。
 
 你的风格：温暖、诗意但务实；像一位温柔而清醒的朋友。用简体中文，避免宿命论与恐吓，不做医疗/法律/投资等确定性承诺，把牌意转化为可执行的自我觉察和行动。可以自然地使用"登塔""星光""台阶""塔顶"等意象，但不要堆砌。
 
@@ -38,7 +38,7 @@ const SYSTEM_PROMPT = `你是「塔罗显化之旅」里的塔罗解读师。用
   "title": "一句话总结这次三张牌的旅程（不超过 24 字）",
   "reading": ["段落1", "段落2", "段落3（可选）"],
   "actions": ["行动1", "行动2", "行动3"],
-  "creator_message": "第 23 张创造者牌给用户的 1–2 句话（不超过 50 字）"
+  "creator_message": "以本次第 23 张显化牌的身份对用户说的 1–2 句话（不超过 50 字），须点出这张牌的名字与寓意"
 }
 要求：reading 为 2–3 段，每段 50–110 字，必须结合用户的问题，把过去、现在、未来三张牌串成一条线；actions 恰好 3 条，每条不超过 30 字，具体、可在今天或本周完成（可用"今天：/本周：/持续："开头）；不要使用 Markdown 或 HTML。`;
 
@@ -143,7 +143,9 @@ function validate(data) {
     if (!card.name_cn && !card.name_en) return [null, '牌名缺失'];
     out.push(card);
   }
-  return [{ question: clean(q, MAX_Q), theme, cards: out }, null];
+  const m = data.manifest && typeof data.manifest === 'object' ? data.manifest : {};
+  const manifest = { name_cn: clean(m.name_cn, 8) || '创造者', name_en: clean(m.name_en, 24) || 'THE CREATOR' };
+  return [{ question: clean(q, MAX_Q), theme, cards: out, manifest }, null];
 }
 
 // ---------------- 上游（DeepSeek 优先，OpenAI 兜底） ----------------
@@ -251,7 +253,7 @@ async function callProvider(prov, user, timeoutMs) {
 async function callAi(provs, req) {
   if (!provs.length) throw new Upstream(503, 'not_configured');
   const cardsTxt = req.cards.map((c) => `- ${c.position}：${c.numeral} ${c.name_cn}（${c.name_en}）`).join('\n');
-  const user = `主题：${THEME_CN[req.theme]}\n用户的问题：「${req.question}」\n抽到的三张牌：\n${cardsTxt}\n请按要求输出 JSON。`;
+  const user = `主题：${THEME_CN[req.theme]}\n用户的问题：「${req.question}」\n抽到的三张牌：\n${cardsTxt}\n第 23 张显化牌：XXII ${req.manifest.name_cn}（${req.manifest.name_en}）\n请按要求输出 JSON，creator_message 要围绕「${req.manifest.name_cn}」这张牌来写。`;
   const t0 = Date.now();
   let last = null;
   for (const prov of provs) {

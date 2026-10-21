@@ -72,7 +72,25 @@ const DECK = RAW.map((r, n) => ({
   past: r[4], present: r[5], future: r[6], apply: r[7],
   art: ART[n], base: TPL_BASES[n % TPL_BASES.length],
 }));
-const CREATOR = { n: 22, roman: 'XXII', en: 'THE CREATOR', cn: '创造者', art: ['assets/card_creator.jpg','50% 42%'] };
+/* 23rd card: random manifestation card from a pool (art list in assets/manifest-art.js) */
+const MANIFESTS = [
+  { slug: 'creator', cn: '创造者', en: 'THE CREATOR', meaning: '你不再等待答案，而是开始亲手创造答案。', msg: '你不再等待一个确定的答案，<br>而是开始创造答案。' },
+  { slug: 'dreamweaver', cn: '织梦者', en: 'THE DREAMWEAVER', meaning: '把零散的愿望织成清晰的蓝图，梦想便有了形状。', msg: '你心里的那张蓝图，<br>正在一针一线变成现实。' },
+  { slug: 'lightbearer', cn: '持光者', en: 'THE LIGHTBEARER', meaning: '你本身就是光，带着它前行，也照亮别人。', msg: '不必等别人点灯，<br>你手中的光已经足够照亮前路。' },
+  { slug: 'voyager', cn: '启航者', en: 'THE VOYAGER', meaning: '风已经来了，现在是解开缆绳、驶向新海域的时候。', msg: '港口很安全，<br>但你生来是为了远航。' },
+  { slug: 'gardener', cn: '培育者', en: 'THE GARDENER', meaning: '耐心浇灌每一颗种子，丰盛会在对的季节绽放。', msg: '你今天种下的每一颗小种子，<br>都会在未来开成一片花园。' },
+  { slug: 'phoenix', cn: '重生者', en: 'THE PHOENIX', meaning: '旧的已经燃尽，你正从灰烬里展翅，成为更新的自己。', msg: '你经历的一切都没有白费，<br>它们正化作你重生的羽翼。' },
+];
+const MANIFEST_OK = window.TAROT_MANIFEST_ART || { creator: 'assets/card_creator.jpg' };
+const MANIFEST_POOL = MANIFESTS.filter(m => MANIFEST_OK[m.slug]).map(m => ({ ...m, n: 22, roman: 'XXII', art: [MANIFEST_OK[m.slug], '50% 42%'] }));
+const CREATOR = MANIFEST_POOL.find(m => m.slug === 'creator') || MANIFEST_POOL[0];
+function pickManifest(cards) {
+  if (params.has('manifest')) { const f = MANIFEST_POOL.find(m => m.slug === params.get('manifest')); if (f) return f; }
+  let h = params.has('seed') ? (+params.get('seed') || 1) : Date.now();
+  cards.forEach(c => { h = (Math.imul(h ^ (c.n + 1), 2654435761) + 0x9e3779b9) >>> 0; });
+  h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13;
+  return MANIFEST_POOL[(h >>> 0) % MANIFEST_POOL.length];
+}
 
 /* ---------- SVG ---------- */
 const G = '#f3dca0';
@@ -292,22 +310,26 @@ function renderStrip(t) {
   });
   if (fi !== P.focusIdx) { P.focusIdx = fi; P.els.forEach((e, i) => e.classList.toggle('focus', i === fi)); }
 }
+const SHUF_END = 3.1;   // gather .5 → riffle 3×.52 → pause .3 → fan .7
 function renderShuffle(t) {
   const T = (t - P.shufT0) / 1000;
-  if (T >= 1.75) { P.phase = 'strip'; P.els.forEach(el => { el._z = null; }); renderStrip(t); afterCountChange(); return; }
+  if (T >= SHUF_END) { endShuffle(); renderStrip(t); afterCountChange(); return; }
   P.els.forEach((el, i) => {
     const d = i - P.pos, ad = Math.abs(d);
     const st = { x: ((i * 37) % 7 - 3) * .7, y: -Math.min(i, 12) * .6, r: ((i * 53) % 9 - 4) * .9, s: .9 };
     let o, op = 1, z = i;
-    if (T < .3) { const u = easeOut(clamp(T / .3, 0, 1)); o = mix({ x: 0, y: 140, r: 0, s: .7 }, st, u); op = u; }
-    else if (T < .95) {             // riffle: halves fly out, cross mid-air, and come back together
-      const u = clamp((T - .3 - (i % 11) * .012) / .55, 0, 1), side = i % 2 ? 1 : -1, k = Math.sin(Math.PI * u), w = Math.sin(2 * Math.PI * u);
-      o = { x: st.x + side * 92 * w * (1 - .25 * u), y: st.y - (46 + (i % 6) * 5) * k, r: st.r + side * 18 * w, s: .9 + .06 * k };
+    if (T < .5) { const u = easeOut(clamp((T - (i % 8) * .02) / .42, 0, 1)); o = mix({ x: 0, y: 160, r: 0, s: .7 }, st, u); op = u; }
+    else if (T < 2.06) {            // riffle: 3 passes, halves fly out, cross mid-air, come back together
+      const TT = T - .5, pass = Math.min(2, Math.floor(TT / .52));
+      const u = easeIO(clamp((TT - pass * .52 - (i % 11) * .008) / .44, 0, 1));
+      const side = ((i + pass) % 2 ? 1 : -1) * (pass === 1 ? -1 : 1), k = Math.sin(Math.PI * u), w = Math.sin(2 * Math.PI * u);
+      const amp = [92, 78, 64][pass];
+      o = { x: st.x + side * amp * w, y: st.y - (40 + (i % 6) * 5) * k, r: st.r + side * 16 * w, s: .9 + .06 * k };
       z = (u < .5) === (side > 0) ? i : 60 + i;
     }
-    else if (T < 1.1) { const u = (T - .95) / .15; o = { ...st, s: .9 + .04 * Math.sin(Math.PI * u) }; }
+    else if (T < 2.4) { const u = (T - 2.06) / .34; o = { ...st, s: .9 + .04 * Math.sin(Math.PI * u) }; }
     else {                          // spread into the fan
-      const u = easeIO(clamp((T - 1.1 - Math.min(ad, 8) * .02) / .5, 0, 1));
+      const u = easeIO(clamp((T - 2.4 - Math.min(ad, 8) * .02) / .54, 0, 1));
       o = mix(st, lay(d, t, false), u); z = u > .5 ? 100 - Math.round(ad * 10) : i;
       if (ad > 6.5) op = 1 - u;
     }
@@ -316,6 +338,9 @@ function renderShuffle(t) {
     setIf(el._dim, 'opacity', '0'); setIf(el._glow, 'opacity', '0');
   });
 }
+function endShuffle() { P.phase = 'strip'; P.els.forEach(el => { el._z = null; }); $('#shufTip').classList.remove('show'); }
+function skipShuffle() { if (P.phase === 'shuffle') { P.shufT0 = performance.now() - SHUF_END * 1000; kick(); } }
+$('#shufTip').addEventListener('click', skipShuffle);
 function loop(t) {
   P.raf = 0;
   if (S.screen !== 'pick') return;
@@ -351,7 +376,7 @@ function renderPick() {
     hint('深呼吸 · 默念你的问题', true);
     showIntro(run);
   } else {
-    $('#ritualIntro').classList.remove('show');
+    $('#ritualIntro').classList.remove('show'); $('#shufTip').classList.remove('show');
     P.phase = 'strip'; afterCountChange(); kick();
   }
 }
@@ -364,7 +389,7 @@ function showIntro(run) {
     if (done || run !== P.run) return; done = true;
     box.classList.remove('show'); box.onclick = null;
     if (reduced()) { P.phase = 'strip'; afterCountChange(); kick(); return; }
-    hint('洗牌中…', true); vibrate(8);
+    hint('正在洗牌…', true); vibrate(8); $('#shufTip').classList.add('show');
     P.phase = 'shuffle'; P.shufT0 = performance.now() + 250; kick();
   };
   box.onclick = next;
@@ -421,7 +446,7 @@ function drawFromStrip(idx) {
   const card = DEMO ? DECK[[9, 17, 21][k]] : el._card;
   const box = $$('.slot-box', slotsEl)[k];
   const from = el.getBoundingClientRect(), to = box.getBoundingClientRect();
-  P.els.splice(idx, 1); S.strip.splice(idx, 1); el.remove();
+  P.els.splice(idx, 1); S.strip.splice(idx, 1); el.remove(); P.focusIdx = -1;
   if (P.pos > P.els.length - 1) animTo(P.els.length - 1);
   S.cards[k] = card; updateCounts();
   $$('.slot', slotsEl)[k].classList.add('incoming');
@@ -452,6 +477,7 @@ $$('.slot', slotsEl).forEach((s, k) => s.addEventListener('click', () => returnT
 /* pointer input: drag (touch + mouse) with momentum + snap; tap = center / draw */
 const rubber = x => .6 * (1 - 1 / (x * .9 + 1));
 spread.addEventListener('pointerdown', e => {
+  if (P.phase === 'shuffle') { skipShuffle(); return; }
   if (P.phase !== 'strip' || (e.pointerType === 'mouse' && e.button !== 0)) return;
   const el = e.target.closest('.sc');
   P.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, pos0: P.pos, moved: false, idx: el ? P.els.indexOf(el) : -1, samples: [[e.timeStamp, e.clientX]] };
@@ -521,7 +547,7 @@ document.addEventListener('keydown', e => {
 });
 
 /* ---------- Generic swipe carousel (native scroll-snap for touch, drag for mouse, arrows) ---------- */
-function carousel(track, dots) {
+function carousel(track, dots, onChange) {
   const slides = () => [...track.children];
   const idx = () => { const c = track.scrollLeft + track.clientWidth / 2; let best = 0, bd = 1e9; slides().forEach((s, i) => { const d = Math.abs(s.offsetLeft + s.offsetWidth / 2 - c); if (d < bd) { bd = d; best = i; } }); return best; };
   let cur = -1, ticking = false;
@@ -529,6 +555,7 @@ function carousel(track, dots) {
     ticking = false; const i = idx(); if (i === cur) return; cur = i;
     slides().forEach((s, k) => s.classList.toggle('on', k === i)); if (slides()[i]) slides()[i].classList.add('seen');
     if (dots) [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
+    if (onChange) onChange(i);
   };
   const goTo = (i, smooth = true) => {
     i = clamp(i, 0, slides().length - 1); const s = slides()[i]; if (!s) return;
@@ -560,7 +587,7 @@ function relateLine(card) {
   return `${th.prefix}${card.apply}。`;
 }
 const typeSpans = txt => [...txt].map((ch, i) => `<span style="--d:${i * 32}ms">${esc(ch)}</span>`).join('');
-const rvCar = carousel($('#rvTrack'), $('#rvDots'));
+const rvCar = carousel($('#rvTrack'), $('#rvDots'), i => rvChanged(i));
 function renderReveal() {
   $('#rvQ').textContent = `「${S.question}」`;
   $('#rvTrack').innerHTML = S.cards.map((c, i) => `
@@ -573,6 +600,13 @@ function renderReveal() {
       </div>
     </div>`).join('');
   requestAnimationFrame(() => rvCar.reset());
+  const h = $('#rvHint'); h.classList.toggle('show', !S.swiped);
+}
+$('#rvPrev').addEventListener('click', () => rvCar.goTo(rvCar.idx() - 1));
+$('#rvNext').addEventListener('click', () => rvCar.goTo(rvCar.idx() + 1));
+function rvChanged(i) {
+  $('#rvPrev').disabled = i <= 0; $('#rvNext').disabled = i >= 2;
+  if (i > 0 && !S.swiped) { S.swiped = true; $('#rvHint').classList.remove('show'); }
 }
 $('#revealNext').addEventListener('click', () => startReading());
 
@@ -603,7 +637,7 @@ function templateReading(question, theme, cards) {
     `本周：做一件与「${b.kw}」有关的小行动，哪怕很小。`,
     `持续：每晚睡前读一遍你的显化宣言。`,
   ].map(esc);
-  return { source: 'template', title: '', journey, paragraphs, actions, quote: DEFAULT_QUOTE, creatorMsg: '', affirm: th.affirm };
+  return { source: 'template', title: '', journey, paragraphs, actions, quote: S.manifest.msg, creatorMsg: '', affirm: th.affirm };
 }
 
 async function fetchAiReading(question, theme, cards) {
@@ -616,6 +650,7 @@ async function fetchAiReading(question, theme, cards) {
       body: JSON.stringify({
         question: question.slice(0, 120), theme: theme || 'custom',
         cards: cards.slice(0, 3).map((c, i) => ({ position: POS[i].key, name_cn: c.cn, name_en: c.en, numeral: c.roman })),
+        manifest: { name_cn: S.manifest.cn, name_en: S.manifest.en },
       }),
     });
     const data = await res.json().catch(() => ({}));
@@ -628,7 +663,7 @@ async function fetchAiReading(question, theme, cards) {
       journey: `「${cards.map(c => c.kw).join(' → ')}」`,
       paragraphs: data.reading.slice(0, 3).map(esc),
       actions: data.actions.slice(0, 3).map(esc),
-      quote: msg ? esc(msg) : DEFAULT_QUOTE, creatorMsg: msg, affirm: th.affirm,
+      quote: msg ? esc(msg) : S.manifest.msg, creatorMsg: msg, affirm: th.affirm,
     };
   } finally { clearTimeout(timer); }
 }
@@ -649,6 +684,7 @@ async function generateReading(question, theme, cards) {
 
 let loadTimer;
 function startReading() {
+  S.manifest = pickManifest(S.cards);
   go('loading');
   $('#loadBox').hidden = false; $('#errBox').hidden = true;
   const subs = ['塔顶的星光正在汇聚…', '正在读取过去、现在与未来的线索…', '为你生成第 23 张显化牌…'];
@@ -681,15 +717,23 @@ function renderFinal() {
         <span class="rc-kw">✦ ${c.kw}</span><p class="rc-mean">${c[POS[i].key]}</p></div>
     </div>`).join('');
   requestAnimationFrame(() => recapCar.reset());
-  $('#reading').innerHTML = (r.title ? `<p class="r-title"><span class="journey">✦ ${esc(r.title)}</span></p>` : '') +
-    r.paragraphs.map(p => `<p>${p}</p>`).join('') +
-    `<h4>✦ 显化小行动</h4><ol>${r.actions.map(a => `<li>${a}</li>`).join('')}</ol>`;
+  const SUBS = null;  // paragraphs don't map 1:1 to cards, so no per-card subheads
+  $('#reading').innerHTML = `<div class="rd-head"><span class="rd-ico">☾</span><b>解读</b></div>` +
+    (r.title ? `<p class="r-title"><span class="journey">✦ ${esc(r.title)}</span></p>` : '') +
+    r.paragraphs.map((p, i) => `<div class="rd-para">${SUBS ? `<span class="rd-sub">${SUBS[i]}</span>` : ''}<p>${p}</p></div>`).join('');
+  const CHIP = { '今天': ['今天', '☀'], '本周': ['本周', '✿'], '持续': ['持续', '∞'] }, DEF = [['今天', '☀'], ['本周', '✿'], ['持续', '∞']];
+  $('#actionsCard').innerHTML = `<div class="rd-head"><span class="rd-ico">✦</span><b>行动建议</b></div><ol class="act-list">` +
+    r.actions.map((a, i) => {
+      const m = a.match(/^(今天|本周|持续)[：:]\s*/); const [lab, ico] = m ? CHIP[m[1]] : DEF[i] || DEF[2];
+      return `<li><span class="act-num">${i + 1}</span><div><span class="act-chip">${ico} ${lab}</span><p>${m ? a.slice(m[0].length) : a}</p></div></li>`;
+    }).join('') + `</ol>`;
   $('#quote').innerHTML = r.quote; $('#affirm').textContent = r.affirm;
   $('#s-final').dataset.source = r.source;
   $('.proto-note').textContent = r.source === 'ai' ? '解读由 AI 实时生成，仅供自我觉察与娱乐参考' : '离线模式：解读由本地模板生成';
   S.creatorRevealed = false;
   const stage = $('#creatorStage'); stage.classList.remove('revealed', 'flash');
-  const cc = $('#creatorCard'); cc.className = 'flip-card big'; cc.innerHTML = flipCardHtml(CREATOR);
+  const cc = $('#creatorCard'); cc.className = 'flip-card big'; cc.innerHTML = flipCardHtml(S.manifest);
+  $('#manifestMeaning').innerHTML = `<b>XXII ${S.manifest.cn}</b> · ${S.manifest.meaning}`;
   $('#tapHint').textContent = '轻触揭晓';
   $('#creatorAfter').classList.remove('show');
   stage.classList.remove('merging', 'emerge'); $('#converge').innerHTML = '';
@@ -724,7 +768,7 @@ $('#changeBtn').addEventListener('click', () => { resetDraw(); S.question = ''; 
 
 /* ---------- Share ---------- */
 $('#shareBtn').addEventListener('click', async () => {
-  const text = `我在「塔罗显化之旅」抽到了 ${S.cards.map(c => c.cn).join('、')}，第 23 张显化牌是「创造者」✦`;
+  const text = `我在「塔罗显化之旅」抽到了 ${S.cards.map(c => c.cn).join('、')}，第 23 张显化牌是「${S.manifest.cn}」✦`;
   const url = location.href.split('?')[0].split('#')[0];
   if (navigator.share) {
     try { await navigator.share({ title: 'Tarot Journey · 塔罗显化之旅', text, url }); return; }
@@ -779,19 +823,20 @@ async function renderShareCanvas() {
   ctx.strokeStyle = 'rgba(201,164,92,.75)'; ctx.lineWidth = 2; rr(ctx, cx + 18, cy + 18, cw - 36, ch - 36, 30); ctx.stroke();
   ctx.fillStyle = '#a8823f'; ctx.font = `400 64px ${RM}`; ctx.letterSpacing = '6px'; ctx.fillText('XXII', W / 2, cy + 104);
   const ax = cx + 48, ay = cy + 136, aw = cw - 96, ah = 680;
-  const img = await loadImg(window.CREATOR_DATA_URI || 'assets/card_creator.jpg');
+  const M = S.manifest || CREATOR;
+  const img = await loadImg(M.slug === 'creator' && window.CREATOR_DATA_URI ? window.CREATOR_DATA_URI : M.art[0]);
   const s = Math.max(aw / img.width, ah / img.height), iw = img.width * s, ih = img.height * s;
   ctx.save(); rr(ctx, ax, ay, aw, ah, 22); ctx.clip();
   ctx.drawImage(img, ax + (aw - iw) / 2, ay + (ah - ih) * .4, iw, ih); ctx.restore();
   ctx.strokeStyle = '#c9a45c'; ctx.lineWidth = 3; rr(ctx, ax, ay, aw, ah, 22); ctx.stroke();
-  ctx.fillStyle = '#3a3466'; ctx.font = `600 50px ${EN}`; ctx.letterSpacing = '8px'; ctx.fillText('THE CREATOR', W / 2, ay + ah + 86);
-  ctx.fillStyle = '#3b3672'; ctx.font = `700 72px ${CN}`; ctx.letterSpacing = '14px'; ctx.fillText('创造者', W / 2 + 7, ay + ah + 176);
+  ctx.fillStyle = '#3a3466'; ctx.font = `600 50px ${EN}`; ctx.letterSpacing = '8px'; ctx.fillText(M.en, W / 2, ay + ah + 86);
+  ctx.fillStyle = '#3b3672'; ctx.font = `700 72px ${CN}`; ctx.letterSpacing = '14px'; ctx.fillText(M.cn, W / 2 + 7, ay + ah + 176);
   // texts
   const R = S.reading || {};
   ctx.letterSpacing = '4px'; ctx.fillStyle = '#3a3466'; ctx.font = `400 40px ${CN}`;
   let y = 1416;
   if (R.creatorMsg) { y += wrapText(ctx, R.creatorMsg, W / 2, y, 900, 58, 3) * 58; }
-  else { ctx.fillText('你不再等待一个确定的答案，', W / 2, 1420); ctx.fillText('而是开始创造答案。', W / 2, 1480); y = 1538; }
+  else { const [l1, l2] = M.msg.split('<br>'); ctx.fillText(l1, W / 2, 1420); ctx.fillText(l2 || '', W / 2, 1480); y = 1538; }
   if (R.title) {
     ctx.fillStyle = '#a8823f'; ctx.font = `700 32px ${CN}`; ctx.letterSpacing = '3px';
     y += 4; wrapText(ctx, `✦ ${R.title} ✦`, W / 2, y, 900, 44, 1); y += 50;
@@ -811,7 +856,7 @@ $('#saveBtn').addEventListener('click', async () => {
     const cv = await renderShareCanvas();
     const blob = await new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('toBlob failed')), 'image/png'));
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = `tarot-journey-creator-${Date.now()}.png`;
+    a.href = URL.createObjectURL(blob); a.download = `tarot-journey-${(S.manifest || CREATOR).slug}-${Date.now()}.png`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
     toast('图片已保存 ✦');
@@ -821,5 +866,5 @@ $('#saveBtn').addEventListener('click', async () => {
 
 go("home", { noHistory: true });
 // expose for automated tests
-window.__tarot = { S, P, go, DECK, renderShareCanvas, generateReading };
+window.__tarot = { S, P, go, DECK, MANIFEST_POOL, pickManifest, startReading, renderReveal, revealCreator, renderShareCanvas, generateReading };
 })();

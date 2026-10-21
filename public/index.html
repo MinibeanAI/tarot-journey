@@ -88,6 +88,7 @@
       <button class="slot" aria-label="现在"><div class="slot-box"></div><span>II · 现在</span></button>
       <button class="slot" aria-label="未来"><div class="slot-box"></div><span>III · 未来</span></button>
     </div>
+    <div class="shuf-tip" id="shufTip" role="button" aria-label="跳过洗牌"><b>正在洗牌…</b><span>轻触跳过</span></div>
     <div class="pick-hint"><span id="pickHint">左右滑动挑一张，点击选中</span></div>
     <div class="bottom-cta draw-cta"><button class="btn btn-indigo wide" id="flipAll">翻开我的三张牌<i class="arr"></i></button></div>
     <div class="ritual-intro" id="ritualIntro" role="button" aria-label="继续">
@@ -106,8 +107,12 @@
       <button class="icon-btn back light" data-back aria-label="返回抽牌"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
     </header>
     <div class="rv-head"><h3>你的三张牌</h3><p id="rvQ"></p></div>
+    <div class="rv-backdrop" aria-hidden="true"></div>
     <div class="rv-track" id="rvTrack" aria-label="左右滑动查看三张牌"></div>
-    <div class="car-dots rv-dots" id="rvDots"><i></i><i></i><i></i></div>
+    <button class="rv-arrow prev" id="rvPrev" aria-label="上一张"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="rv-arrow next" id="rvNext" aria-label="下一张"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+    <div class="rv-hint" id="rvHint">← 左右滑动查看 →</div>
+    <div class="rv-dots" id="rvDots"><i><span>过去</span></i><i><span>现在</span></i><i><span>未来</span></i></div>
     <div class="bottom-cta tight">
       <button class="btn btn-cream wide" id="revealNext">查看完整解读<i class="arr"></i></button>
     </div>
@@ -147,6 +152,7 @@
       <div class="car-dots" id="recapDots"><i></i><i></i><i></i></div>
       <div class="pill-title">AI 为你解读这三个线索</div>
       <article class="reading" id="reading"></article>
+      <article class="actions-card" id="actionsCard"></article>
       <div class="divider"><span>✦</span></div>
       <section class="creator-sec">
         <h3 class="sec-title big">第 23 张 · 你的显化牌</h3>
@@ -158,6 +164,7 @@
           <div class="tap-hint" id="tapHint">轻触揭晓</div>
         </div>
         <div class="creator-after" id="creatorAfter">
+          <p class="manifest-meaning" id="manifestMeaning"></p>
           <p class="quote" id="quote"></p>
           <p class="affirm" id="affirm"></p>
           <div class="actions">
@@ -179,6 +186,7 @@
 </div>
 <script src="assets/creator-embed.js"></script>
 <script src="assets/art-manifest.js"></script>
+<script src="assets/manifest-art.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
