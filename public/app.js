@@ -273,9 +273,25 @@ $$('[data-back]').forEach(b => b.addEventListener('click', back));
 $$('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
 
 /* ---------- Home ---------- */
+/* background music: CC0 "Ethereal Loop" by wipics (see assets/MUSIC_LICENSE.md) */
+const BGM = (() => {
+  const el = new Audio('assets/bgm_ethereal_loop.mp3'); el.loop = true; el.preload = 'none'; el.volume = 0;
+  const VOL = .35; let fadeT = 0, unlocked = false;
+  const fade = (to, ms, done) => {
+    clearInterval(fadeT); const from = el.volume, t0 = performance.now();
+    fadeT = setInterval(() => { const u = Math.min(1, (performance.now() - t0) / ms); el.volume = from + (to - from) * u; if (u >= 1) { clearInterval(fadeT); done && done(); } }, 40);
+  };
+  const play = () => { if (!S.music || !unlocked || document.hidden) return; const pr = el.play(); if (pr && pr.catch) pr.catch(() => {}); fade(VOL, 1500); };
+  const pause = () => fade(0, 600, () => el.pause());
+  const unlock = () => { if (unlocked) return; unlocked = true; play(); };
+  ['pointerdown', 'touchend', 'click', 'keydown'].forEach(ev => document.addEventListener(ev, unlock, { capture: true, passive: true }));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { clearInterval(fadeT); el.volume = 0; el.pause(); } else play(); });
+  return { el, play, pause, unlock };
+})();
 $('#musicBtn').addEventListener('click', (e) => {
   S.music = !S.music; e.currentTarget.setAttribute('aria-pressed', S.music);
-  toast(S.music ? '背景音乐 已开启（原型仅为开关）' : '背景音乐 已关闭');
+  if (S.music) { BGM.unlock(); BGM.play(); } else BGM.pause();
+  toast(S.music ? '背景音乐 已开启' : '背景音乐 已关闭');
 });
 
 /* ---------- Theme -> Question (merged flow) ---------- */
@@ -981,5 +997,5 @@ $('#saveBtn').addEventListener('click', async () => {
 
 go("home", { noHistory: true });
 // expose for automated tests
-window.__tarot = { S, P, go, DECK, MANIFEST_POOL, pickManifest, startReading, renderReveal, revealCreator, renderShareCanvas, generateReading };
+window.__tarot = { BGM, S, P, go, DECK, MANIFEST_POOL, pickManifest, startReading, renderReveal, revealCreator, renderShareCanvas, generateReading };
 })();
