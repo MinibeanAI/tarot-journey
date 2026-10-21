@@ -500,3 +500,6 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 /* reading body text: LXGW WenKai (SIL OFL, self-hosted, unicode-range slices) */
 :root{--kai:"LXGW WenKai",-apple-system,"PingFang SC","Microsoft YaHei","Hiragino Sans GB","Noto Sans SC",sans-serif}
 .rv-meaning,.rv-relate,.rc-mean,.reading .rd-para p,.quote,.affirm,.manifest-meaning{font-family:var(--kai)!important;font-weight:400!important}
+/* home title: Cinzel 500 (SIL OFL, self-hosted subset of "TAROT JOURNEY") */
+@font-face{font-family:"TJ Cinzel Title";src:url(assets/fonts/cinzel/cinzel-500-title.woff2) format("woff2");font-weight:500;font-display:swap}
+.brand{font-family:"TJ Cinzel Title",var(--cn)!important;font-weight:500!important;font-size:46px!important;letter-spacing:.12em!important;line-height:1.08!important}

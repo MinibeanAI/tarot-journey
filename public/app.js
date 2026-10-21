@@ -941,7 +941,8 @@ async function renderShareCanvas() {
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   for (let i = 0; i < 90; i++) { ctx.fillStyle = `rgba(255,255,255,${(Math.random()*.7+.2).toFixed(2)})`; ctx.beginPath(); ctx.arc(Math.random()*W, Math.random()*H*.55, Math.random()*2.6+.6, 0, 7); ctx.fill(); }
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#fbf6ee'; ctx.font = `400 64px ${EN}`; ctx.letterSpacing = '10px';
+  try { await Promise.race([document.fonts.load('500 64px "TJ Cinzel Title"', 'TAROT JOURNEY'), sleep(2000)]); } catch (_) {}
+  ctx.fillStyle = '#fbf6ee'; ctx.font = `500 60px "TJ Cinzel Title",${EN}`; ctx.letterSpacing = '10px';
   ctx.fillText('TAROT JOURNEY', W / 2, 150);
   ctx.letterSpacing = '6px'; ctx.font = `400 38px ${CN}`; ctx.fillText('塔罗显化之旅 · 第 23 张显化牌', W / 2, 218);
   // manifestation name above the card (no numeral)
