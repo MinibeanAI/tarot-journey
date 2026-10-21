@@ -360,6 +360,13 @@ const spread = $('#spread'), pickHint = $('#pickHint'), slotsEl = $('#slots');
 const STEP_PX = 58;
 const P = { els: [], pos: 0, phase: 'idle', run: 0, anim: null, drag: null, raf: 0, focusIdx: -1, busy: false, shufT0: 0 };
 function shuffleArr(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+S.mode = '78';
+const pool = () => S.mode === '22' ? DECK.filter(c => !c.minor) : DECK;
+document.querySelectorAll('#qMode [data-mode]').forEach(b => b.addEventListener('click', () => {
+  if (S.mode === b.dataset.mode) return;
+  S.mode = b.dataset.mode; resetDraw();
+  document.querySelectorAll('#qMode [data-mode]').forEach(x => { const on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-checked', on); });
+}));
 function resetDraw() { S.cards = [null, null, null]; S.strip = null; P.pos = 0; }
 const drawnCount = () => S.cards.filter(Boolean).length;
 function hint(txt, still) { pickHint.textContent = txt; pickHint.classList.toggle('done', !!still); }
@@ -452,7 +459,7 @@ function renderPick() {
   $('#pickBg').style.cssText = `--img:url(assets/bg_present_p.jpg);--pos:50% 100%`;
   $('#drawQ').textContent = `「${S.question}」`;
   const fresh = !S.strip;
-  if (fresh) S.strip = shuffleArr(DECK.filter(c => !S.cards.some(x => x && x.n === c.n)));
+  if (fresh) S.strip = shuffleArr(pool().filter(c => !S.cards.some(x => x && x.n === c.n)));
   const scr = $('#s-pick'); scr.classList.remove('ceremony');
   $('#pickDim').classList.remove('on');
   $$('.slot', slotsEl).forEach(s => s.classList.remove('halo-on', 'flash'));
@@ -489,7 +496,7 @@ function showIntro(run) {
 }
 function updateCounts() {
   $('#drawCount').innerHTML = `已抽取 <b>${drawnCount()}</b>/3 张`;
-  $('#pickCount').textContent = `剩余 ${S.strip ? S.strip.length : DECK.length} 张`;
+  $('#pickCount').textContent = `剩余 ${S.strip ? S.strip.length : pool().length} 张`;
 }
 function afterCountChange() {
   const n = drawnCount(); updateCounts();
@@ -855,7 +862,7 @@ function revealCreator() {
 $('#creatorCard').addEventListener('click', revealCreator);
 $('#creatorCard').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); revealCreator(); } });
 
-$('#againBtn').addEventListener('click', () => { resetDraw(); renderPick(); go('pick'); });
+$('#againBtn').addEventListener('click', () => { resetDraw(); go('question'); });   // back to question so the deck mode can be re-chosen
 $('#changeBtn').addEventListener('click', () => { resetDraw(); S.question = ''; go('theme'); });
 
 /* ---------- Share ---------- */
