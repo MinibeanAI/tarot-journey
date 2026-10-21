@@ -739,10 +739,16 @@ function renderReveal() {
       <div class="rv-card"><span class="sparkle-top">✦</span><div class="flip-card flipped">${flipCardHtml(c)}</div></div>
       <div class="rv-panel">
         <div class="rv-pos">${POS[i].roman} · ${POS[i].cn}　${c.roman} ${c.cn}</div>
-        <p class="rv-meaning typing">${typeSpans(c[POS[i].key])}<span class="rv-relate">${relateLine(c)}</span></p>
+        <p class="rv-meaning rv-fade">${esc(c[POS[i].key])}<span class="rv-relate">${esc(relateLine(c))}</span></p>
       </div>
     </div>`).join('');
   requestAnimationFrame(() => rvCar.reset());
+  /* Whole paragraph (card text + local question-keyword line) appears at once: wait for the WenKai slices
+     covering this text (max 1.2s), then fade the complete paragraph in — never half a paragraph first. */
+  const track = $('#rvTrack'); track.classList.remove('txt-ready');
+  const txt = S.cards.map((c, i) => c[POS[i].key] + relateLine(c)).join('');
+  const ready = () => track.classList.add('txt-ready');
+  try { Promise.race([document.fonts.load('400 15px "LXGW WenKai"', txt), sleep(1200)]).then(ready, ready); } catch (_) { ready(); }
   const h = $('#rvHint'); h.classList.toggle('show', !S.swiped);
   ['#rvPrev', '#rvNext'].forEach(id => { const b = $(id); b.classList.remove('nudge'); if (!S.arrowNudged) { void b.offsetWidth; b.classList.add('nudge'); } });
   S.arrowNudged = true;
@@ -919,6 +925,7 @@ function revealCreator() {
     setTimeout(() => { FX.burst(cc, { n: 120, speed: .34, life: 1500, size: 2.8 }); vibrate([20, 50, 30]); }, 380);
     setTimeout(() => {
       $('#creatorAfter').classList.add('show');
+      prepareShareImage().then(img => { if (shareImg.p) shareImg.p.done = img; }).catch(() => {});
       const sc = $('#finalScroll');
       setTimeout(() => sc.scrollTo({ top: sc.scrollHeight, behavior: 'smooth' }), 700);
     }, 900);
@@ -1029,18 +1036,66 @@ async function renderShareCanvas() {
   if (H2 < H) { const out = document.createElement('canvas'); out.width = W; out.height = H2; out.getContext('2d').drawImage(cv, 0, 0); return out; }
   return cv;
 }
-$('#saveBtn').addEventListener('click', async () => {
-  const btn = $('#saveBtn'); btn.disabled = true; const old = btn.textContent; btn.textContent = '正在生成图片…';
-  try {
-    const cv = await renderShareCanvas();
-    const blob = await new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('toBlob failed')), 'image/png'));
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = `tarot-journey-${(S.manifest || CREATOR).slug}-${Date.now()}.png`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    toast('图片已保存 ✦');
-  } catch (e) { console.error(e); toast('保存失败，请通过本地服务器打开后重试'); }
-  finally { btn.disabled = false; btn.textContent = old; }
+/* Save image → photo album.
+   Mobile with Web Share files support: share the PNG (iOS sheet offers「存储图像」).
+   WeChat in-app browser / no file sharing: full-screen preview, long-press to save.
+   Desktop: download. The PNG is pre-rendered when the 23rd card is revealed so that
+   navigator.share() runs inside the tap gesture without a long await before it. */
+const UA = navigator.userAgent || '';
+const IS_WECHAT = /MicroMessenger/i.test(UA);
+const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(UA) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
+const shareImg = { key: '', p: null };
+function shareKey() { return [S.manifest && S.manifest.slug, S.reading && (S.reading.title + S.reading.affirm + S.reading.creatorMsg)].join('|'); }
+function prepareShareImage() {
+  const key = shareKey();
+  if (shareImg.key === key && shareImg.p) return shareImg.p;
+  shareImg.key = key;
+  shareImg.p = renderShareCanvas().then(cv => new Promise((res, rej) => cv.toBlob(b => b ? res({ blob: b, dataUrl: cv.toDataURL('image/png') }) : rej(new Error('toBlob failed')), 'image/png')));
+  shareImg.p.catch(() => { shareImg.p = null; shareImg.key = ''; });
+  return shareImg.p;
+}
+function showSaveOverlay(dataUrl) {
+  let ov = $('#saveOverlay');
+  if (!ov) {
+    ov = document.createElement('div'); ov.id = 'saveOverlay'; ov.className = 'save-ov';
+    ov.innerHTML = '<button class="save-ov-x" aria-label="关闭">×</button><div class="save-ov-body"><img alt="显化牌图片"><p>长按图片保存到相册</p></div>';
+    document.body.appendChild(ov);
+    const close = () => ov.classList.remove('show');
+    ov.querySelector('.save-ov-x').addEventListener('click', close);
+    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  }
+  ov.querySelector('img').src = dataUrl;
+  ov.classList.add('show');
+}
+function downloadBlob(blob) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `tarot-journey-${(S.manifest || CREATOR).slug}-${Date.now()}.png`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('图片已保存 ✦');
+}
+async function shareOrPreview(img) {
+  const file = new File([img.blob], `tarot-journey-${(S.manifest || CREATOR).slug}.png`, { type: 'image/png' });
+  if (!IS_WECHAT && navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; console.info('[tarot] share failed, preview instead:', e && e.name); }
+  }
+  showSaveOverlay(img.dataUrl);
+}
+$('#saveBtn').addEventListener('click', () => {
+  const btn = $('#saveBtn');
+  if (btn.disabled) return;
+  const key = shareKey();
+  const ready = shareImg.key === key && shareImg.p && shareImg.p.done;
+  if (ready && IS_MOBILE) { shareOrPreview(shareImg.p.done); return; }   // synchronous path: still inside the tap gesture
+  btn.disabled = true; const old = btn.textContent; btn.textContent = '正在生成图片…';
+  prepareShareImage().then(img => {
+    shareImg.p.done = img;
+    if (!IS_MOBILE) return downloadBlob(img.blob);
+    // gesture may have expired while rendering: preview layer always works; share is tried if the browser still allows it
+    return shareOrPreview(img);
+  }).catch(e => { console.error(e); toast('图片生成失败，请稍后重试'); })
+    .finally(() => { btn.disabled = false; btn.textContent = old; });
 });
 
 go("home", { noHistory: true });
