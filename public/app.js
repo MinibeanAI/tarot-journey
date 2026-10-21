@@ -955,17 +955,14 @@ async function renderShareCanvas() {
     ctx.fillStyle = '#9a7432'; ctx.font = `700 42px ${CN}`; ctx.letterSpacing = '3px';
     y += wrapText(ctx, body, W / 2, y, 940, 58, 2) * 58 + 4;
   }
-  if (R.title && y < 1720) {   // skip title if space is tight so nothing collides with the footer
+  let last = y - 58;   // baseline of the last drawn line so far
+  if (R.title) {   // reading summary — the image ends here
     ctx.fillStyle = '#a8823f'; ctx.font = `700 32px ${CN}`; ctx.letterSpacing = '3px';
-    y += 4; wrapText(ctx, `✦ ${R.title} ✦`, W / 2, y, 900, 44, 1); y += 50;
-  } else y += 28;
-  ctx.fillStyle = '#5f5a8c'; ctx.font = `400 30px ${CN}`; ctx.letterSpacing = '2px';
-  const qLines = Math.max(1, Math.min(3, Math.floor((1786 - y) / 44)));
-  const n = wrapText(ctx, `「${S.question}」`, W / 2, y, 860, 44, qLines);
-  ctx.fillStyle = '#a8823f'; ctx.font = `400 32px ${CN}`; ctx.letterSpacing = '3px';
-  ctx.fillText(S.cards.map((c, i) => `${POS[i].cn} ${c.roman} ${c.cn}`).join('　·　'), W / 2, y + (n - 1) * 44 + 58);
-  ctx.fillStyle = '#8e86c9'; ctx.font = `400 26px ${CN}`; ctx.letterSpacing = '6px';
-  ctx.fillText('✦ 每一次抽牌，都是一次更靠近自己的旅程 ✦', W / 2, H - 70);
+    y += 30; const tl = wrapText(ctx, `✦ ${R.title} ✦`, W / 2, y, 900, 46, 2); last = y + (tl - 1) * 46;
+  }
+  // crop canvas just below the summary, with a comfortable bottom margin
+  const H2 = Math.min(H, Math.ceil(last + 110));
+  if (H2 < H) { const out = document.createElement('canvas'); out.width = W; out.height = H2; out.getContext('2d').drawImage(cv, 0, 0); return out; }
   return cv;
 }
 $('#saveBtn').addEventListener('click', async () => {
