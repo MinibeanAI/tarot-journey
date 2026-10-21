@@ -479,3 +479,9 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 .manifest-name{margin:6px 0 4px;text-align:center;font-size:24px;font-weight:700;letter-spacing:.3em;text-indent:.3em;color:var(--indigo-2,#4b4596);min-height:1.4em;opacity:0;transform:translateY(6px);transition:opacity .6s,transform .6s}
 .manifest-name.show{opacity:1;transform:none}
 .creator-after .manifest-meaning{margin-top:26px!important}
+/* theme tiles: no label plate; text in each tile's own theme colour */
+.tile-label{background:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.tile-label b,.tile-label small{text-shadow:0 0 6px rgba(255,250,245,.95),0 0 14px rgba(255,250,245,.85),0 1px 2px rgba(255,250,245,.9)}
+.tile-label small{font-weight:600}
+.tile[data-theme="career"]{--tc:#43358f}.tile[data-theme="wealth"]{--tc:#7f5210}.tile[data-theme="love"]{--tc:#9c2f5a}.tile[data-theme="self"]{--tc:#25615f}
+.tile-label b,.tile-label small{color:var(--tc)!important}
