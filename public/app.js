@@ -960,7 +960,7 @@ function loadImg(src) {
 function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
 function wrapText(ctx, text, x, y, maxW, lh, maxLines = 99) {
   let line = '', lines = [];
-  for (const ch of text) { if (ctx.measureText(line + ch).width > maxW && line) { lines.push(line); line = ch; } else line += ch; }
+  for (const ch of text) { if (ctx.measureText(line + ch).width > maxW && line && !'。，、；：！？」）…'.includes(ch)) { lines.push(line); line = ch; } else line += ch; }   // no line may start with closing punctuation
   if (line) lines.push(line);
   if (lines.length > maxLines) {
     lines = lines.slice(0, maxLines); let l = lines[maxLines - 1];
