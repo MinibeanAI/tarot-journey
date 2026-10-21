@@ -521,3 +521,15 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 .rd-card p{margin:0!important}
 .rd-reflect{margin:6px 0 0!important;font-size:13.5px;color:var(--ink-2,#5f5a8c);text-align:center}
 .rd-answer p,.rd-card p,.rd-reflect{font-family:var(--kai)!important;font-weight:400!important}
+/* ---- reveal arrows v2: round frosted icon buttons (44px hit area, 38px visual) ---- */
+#s-reveal .rv-arrow{width:44px!important;height:44px!important;opacity:1!important;overflow:visible}
+#s-reveal .rv-arrow::before{content:'';position:absolute;inset:3px;border-radius:50%;background:rgba(255,252,246,.75);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  border:1px solid rgba(155,140,220,.55);box-shadow:0 4px 14px rgba(60,45,130,.18),0 1px 2px rgba(60,45,130,.12)}
+#s-reveal .rv-arrow svg{position:relative;width:18px!important;height:18px!important;stroke:#3d3358!important;stroke-width:2!important;filter:none!important}
+#s-reveal .rv-arrow:active::before{background:rgba(255,252,246,.92)}
+#s-reveal .rv-arrow.prev{left:max(2px,calc(50% - var(--rvcw) / 2 - 46px))!important}
+#s-reveal .rv-arrow.next{right:max(2px,calc(50% - var(--rvcw) / 2 - 46px))!important}
+#s-reveal .rv-arrow.nudge.prev{animation:rvNudgeL 1.1s ease-in-out 2}
+#s-reveal .rv-arrow.nudge.next{animation:rvNudgeR 1.1s ease-in-out 2}
+#s-reveal .rv-arrow.nudge svg{animation:none!important}
+@media (prefers-reduced-motion:reduce){#s-reveal .rv-arrow.nudge{animation:none}}
