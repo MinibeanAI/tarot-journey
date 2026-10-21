@@ -483,5 +483,5 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 .tile-label{background:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .tile-label b,.tile-label small{text-shadow:0 0 6px rgba(255,250,245,.95),0 0 14px rgba(255,250,245,.85),0 1px 2px rgba(255,250,245,.9)}
 .tile-label small{font-weight:600}
-.tile[data-theme="career"]{--tc:#43358f}.tile[data-theme="wealth"]{--tc:#7f5210}.tile[data-theme="love"]{--tc:#9c2f5a}.tile[data-theme="self"]{--tc:#25615f}
+.tile[data-theme="career"]{--tc:#43358f}.tile[data-theme="wealth"]{--tc:#7f5210}.tile[data-theme="love"]{--tc:#9c2f5a}.tile[data-theme="self"]{--tc:#6b2c7e}
 .tile-label b,.tile-label small{color:var(--tc)!important}
