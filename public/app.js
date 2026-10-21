@@ -357,7 +357,7 @@ const FX = (() => {
 /* ---------- Draw screen: ONE shuffled fan strip, pick 3 into slots ----------
    Phases: intro (breathe pause) -> shuffle -> strip (swipe + tap to draw) -> ceremony (flip 3) */
 const spread = $('#spread'), pickHint = $('#pickHint'), slotsEl = $('#slots');
-const STEP_PX = 58;
+const STEP_PX = 66;
 const P = { els: [], pos: 0, phase: 'idle', run: 0, anim: null, drag: null, raf: 0, focusIdx: -1, busy: false, shufT0: 0 };
 function shuffleArr(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 S.mode = '22';
@@ -373,10 +373,10 @@ function hint(txt, still) { pickHint.textContent = txt; pickHint.classList.toggl
 
 function lay(d, t, bob) {
   const ad = Math.abs(d), sg = Math.sign(d), a1 = Math.min(ad, 1);
-  const x = sg * (a1 * 76 + Math.max(0, ad - 1) * 40);
+  const x = sg * (a1 * 86 + Math.max(0, ad - 1) * 50);   // wider fan (was 76/40)
   let y = Math.min(ad * ad * 6, 90) - (1 - a1) * 20;
   if (bob) y += Math.sin(t / 520) * 3.2 * (1 - a1);
-  return { x, y, r: clamp(d * 5.5, -34, 34), s: Math.max(.62, 1.2 - a1 * .32 - Math.max(0, ad - 1) * .035) };
+  return { x, y, r: clamp(d * 6.5, -38, 38), s: Math.max(.62, 1.2 - a1 * .32 - Math.max(0, ad - 1) * .035) };
 }
 const tf = o => `translate3d(${o.x.toFixed(2)}px,${o.y.toFixed(2)}px,0) rotate(${o.r.toFixed(2)}deg) scale(${o.s.toFixed(3)})`;
 const mix = (a, b, u) => ({ x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u, r: a.r + (b.r - a.r) * u, s: a.s + (b.s - a.s) * u });
@@ -407,7 +407,9 @@ function renderStrip(t) {
   });
   if (fi !== P.focusIdx) { P.focusIdx = fi; P.els.forEach((e, i) => e.classList.toggle('focus', i === fi)); }
 }
-const SHUF_END = 3.1;   // gather .5 → riffle 3×.52 → pause .3 → fan .7
+const RIF_N = 1, RIF_P = 1.2, RIF_END = .5 + RIF_N * RIF_P;   // slow, ceremonial riffle (was 3×.52s)
+const easeSine = u => (1 - Math.cos(Math.PI * u)) / 2;
+const SHUF_END = RIF_END + .34 + .7;   // gather .5 → riffle 1×1.2 → pause .34 → fan .7 = 2.74s (was 3.1s)
 function renderShuffle(t) {
   const T = (t - P.shufT0) / 1000;
   if (T >= SHUF_END) { endShuffle(); renderStrip(t); afterCountChange(); return; }
@@ -418,17 +420,17 @@ function renderShuffle(t) {
     const st = { x: ((i * 37) % 7 - 3) * .7, y: -Math.min(i, 12) * .6, r: ((i * 53) % 9 - 4) * .9, s: .9 };
     let o, op = 1, z = i;
     if (T < .5) { const u = easeOut(clamp((T - (i % 8) * .02) / .42, 0, 1)); o = mix({ x: 0, y: 160, r: 0, s: .7 }, st, u); op = u; }
-    else if (T < 2.06) {            // riffle: 3 passes, halves fly out, cross mid-air, come back together
-      const TT = T - .5, pass = Math.min(2, Math.floor(TT / .52));
-      const u = easeIO(clamp((TT - pass * .52 - (i % 11) * .008) / .44, 0, 1));
+    else if (T < RIF_END) {         // riffle: halves fly out, cross mid-air, come back together (slow sine ease)
+      const TT = T - .5, pass = Math.min(RIF_N - 1, Math.floor(TT / RIF_P));
+      const u = easeSine(clamp((TT - pass * RIF_P - (i % 11) * .012) / (RIF_P - .13), 0, 1));
       const side = ((i + pass) % 2 ? 1 : -1) * (pass === 1 ? -1 : 1), k = Math.sin(Math.PI * u), w = Math.sin(2 * Math.PI * u);
-      const amp = [92, 78, 64][pass];
-      o = { x: st.x + side * amp * w, y: st.y - (40 + (i % 6) * 5) * k, r: st.r + side * 16 * w, s: .9 + .06 * k };
+      const amp = [72, 62, 54][pass];
+      o = { x: st.x + side * amp * w, y: st.y - (32 + (i % 6) * 4) * k, r: st.r + side * 12 * w, s: .9 + .05 * k };
       z = (u < .5) === (side > 0) ? i : 60 + i;
     }
-    else if (T < 2.4) { const u = (T - 2.06) / .34; o = { ...st, s: .9 + .04 * Math.sin(Math.PI * u) }; }
+    else if (T < RIF_END + .34) { const u = (T - RIF_END) / .34; o = { ...st, s: .9 + .04 * Math.sin(Math.PI * u) }; }
     else {                          // spread into the fan
-      const u = easeIO(clamp((T - 2.4 - Math.min(ad, 8) * .02) / .54, 0, 1));
+      const u = easeIO(clamp((T - RIF_END - .34 - Math.min(ad, 8) * .02) / .54, 0, 1));
       o = mix(st, lay(d, t, false), u); z = u > .5 ? 100 - Math.round(ad * 10) : i;
       if (ad > 6.5) op = 1 - u;
     }
