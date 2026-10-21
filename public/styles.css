@@ -470,3 +470,6 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 
 /* manifestation affirmation: bigger, more prominent */
 .affirm{font-size:18px!important;line-height:1.6;font-weight:700;letter-spacing:.08em!important;color:var(--gold-3,#a8823f);margin:4px 0 20px!important}
+/* reveal v5: card fits so text + button are visible on first screen */
+.rv-card .flip-card{--cw:min(63vw,245px,calc((100vh - 330px) * .62))!important}
+@supports (height:100svh){.rv-card .flip-card{--cw:min(63vw,245px,calc((100svh - 330px) * .62))!important}}
