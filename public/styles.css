@@ -486,3 +486,17 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 .tile[data-theme="career"]{--tc:#43358f}.tile[data-theme="wealth"]{--tc:#7f5210}.tile[data-theme="love"]{--tc:#9c2f5a}.tile[data-theme="self"]{--tc:#ffffff}
 .tile-label b,.tile-label small{color:var(--tc)!important}
 .tile[data-theme="self"] .tile-label b,.tile[data-theme="self"] .tile-label small{text-shadow:0 1px 3px rgba(50,36,110,.45),0 0 10px rgba(50,36,110,.3)!important}
+/* reveal v7: thin swipe arrows beside the card */
+#s-reveal{--rvcw:min(63vw,245px,calc((100vh - 360px) * .62))}
+@supports (height:100svh){#s-reveal{--rvcw:min(63vw,245px,calc((100svh - 360px) * .62))}}
+#s-reveal .rv-arrow{display:grid!important;top:calc(max(22px,env(safe-area-inset-top)) + 110px + var(--rvcw) / 1.24 - 22px);width:36px;height:44px;border-radius:0;background:none!important;box-shadow:none!important;border:0;padding:0;opacity:.75;transition:opacity .3s;-webkit-tap-highlight-color:transparent}
+#s-reveal .rv-arrow svg{width:22px;height:34px;stroke:#fff;stroke-width:1.6;filter:drop-shadow(0 1px 3px rgba(50,36,110,.45))}
+#s-reveal .rv-arrow.prev{left:calc(50% - var(--rvcw) / 2 - 46px)}#s-reveal .rv-arrow.next{right:calc(50% - var(--rvcw) / 2 - 46px)}
+#s-reveal .rv-arrow:disabled{opacity:0!important;pointer-events:none}
+#s-reveal .rv-arrow.nudge.prev svg{animation:rvNudgeL 1.1s ease-in-out 2}
+#s-reveal .rv-arrow.nudge.next svg{animation:rvNudgeR 1.1s ease-in-out 2}
+@keyframes rvNudgeR{50%{transform:translateX(6px)}}@keyframes rvNudgeL{50%{transform:translateX(-6px)}}
+@media (prefers-reduced-motion:reduce){#s-reveal .rv-arrow.nudge svg{animation:none}}
+/* reading body text: LXGW WenKai (SIL OFL, self-hosted, unicode-range slices) */
+:root{--kai:"LXGW WenKai",-apple-system,"PingFang SC","Microsoft YaHei","Hiragino Sans GB","Noto Sans SC",sans-serif}
+.rv-meaning,.rv-relate,.rc-mean,.reading .rd-para p,.quote,.affirm,.manifest-meaning{font-family:var(--kai)!important;font-weight:400!important}

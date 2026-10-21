@@ -273,9 +273,9 @@ $$('[data-back]').forEach(b => b.addEventListener('click', back));
 $$('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
 
 /* ---------- Home ---------- */
-/* background music: CC0 "Cathedral in the forest" by congusbongus (see assets/MUSIC_LICENSE.md) */
+/* background music: CC0 "Peaceful Tune 2" by Tozan (see assets/MUSIC_LICENSE.md) */
 const BGM = (() => {
-  const el = new Audio('assets/bgm_cathedral_forest.mp3'); el.loop = true; el.preload = 'none'; el.volume = 0;
+  const el = new Audio('assets/bgm_peaceful_tune2.mp3'); el.loop = true; el.preload = 'none'; el.volume = 0;
   const VOL = .35; let fadeT = 0, unlocked = false;
   const fade = (to, ms, done) => {
     clearInterval(fadeT); const from = el.volume, t0 = performance.now();
@@ -725,6 +725,8 @@ function renderReveal() {
     </div>`).join('');
   requestAnimationFrame(() => rvCar.reset());
   const h = $('#rvHint'); h.classList.toggle('show', !S.swiped);
+  ['#rvPrev', '#rvNext'].forEach(id => { const b = $(id); b.classList.remove('nudge'); if (!S.arrowNudged) { void b.offsetWidth; b.classList.add('nudge'); } });
+  S.arrowNudged = true;
 }
 $('#rvPrev').addEventListener('click', () => rvCar.goTo(rvCar.idx() - 1));
 $('#rvNext').addEventListener('click', () => rvCar.goTo(rvCar.idx() + 1));
@@ -931,6 +933,9 @@ async function renderShareCanvas() {
   const W = 1080, H = 1920, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
   const CN = '-apple-system,"PingFang SC","Microsoft YaHei","Hiragino Sans GB","Noto Sans SC",sans-serif', EN = CN, RM = CN;
+  const KAI = '"LXGW WenKai",' + CN;
+  { const R0 = S.reading || {}, M0 = S.manifest || CREATOR; const txt = [R0.creatorMsg || M0.msg, R0.affirm, R0.title, (THEMES[S.theme || 'custom'] || THEMES.custom).affirm].filter(Boolean).join('').replace(/<br>/g, '');
+    try { await Promise.race([document.fonts.load(`400 40px "LXGW WenKai"`, txt), sleep(3000)]); } catch (_) {} }
   // background
   let g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#8f86cc'); g.addColorStop(.45, '#cfc6ee'); g.addColorStop(1, '#f7efe8');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -959,7 +964,7 @@ async function renderShareCanvas() {
   ctx.fillStyle = '#3b3672'; ctx.font = `700 72px ${CN}`; ctx.letterSpacing = '14px'; ctx.fillText(M.cn, W / 2 + 7, ay + ah + 176);
   // texts
   const R = S.reading || {};
-  ctx.letterSpacing = '4px'; ctx.fillStyle = '#3a3466'; ctx.font = `400 40px ${CN}`;
+  ctx.letterSpacing = '4px'; ctx.fillStyle = '#3a3466'; ctx.font = `400 40px ${KAI}`;
   let y = 1416;
   if (R.creatorMsg) { y += wrapText(ctx, R.creatorMsg, W / 2, y, 900, 58, 3) * 58; }
   else { const [l1, l2] = M.msg.split('<br>'); ctx.fillText(l1, W / 2, 1420); ctx.fillText(l2 || '', W / 2, 1480); y = 1538; }
@@ -968,12 +973,12 @@ async function renderShareCanvas() {
     const body = AF.replace(/^显化宣言[：:]\s*/, '');
     ctx.fillStyle = '#a8823f'; ctx.font = `400 28px ${CN}`; ctx.letterSpacing = '8px';
     y += 26; ctx.fillText('✦ 显化宣言 ✦', W / 2, y); y += 62;
-    ctx.fillStyle = '#9a7432'; ctx.font = `700 42px ${CN}`; ctx.letterSpacing = '3px';
+    ctx.fillStyle = '#9a7432'; ctx.font = `400 44px ${KAI}`; ctx.letterSpacing = '3px';
     y += wrapText(ctx, body, W / 2, y, 940, 58, 2) * 58 + 4;
   }
   let last = y - 58;   // baseline of the last drawn line so far
   if (R.title) {   // reading summary — the image ends here
-    ctx.fillStyle = '#a8823f'; ctx.font = `700 32px ${CN}`; ctx.letterSpacing = '3px';
+    ctx.fillStyle = '#a8823f'; ctx.font = `400 34px ${KAI}`; ctx.letterSpacing = '3px';
     y += 30; const tl = wrapText(ctx, `✦ ${R.title} ✦`, W / 2, y, 900, 46, 2); last = y + (tl - 1) * 46;
   }
   // crop canvas just below the summary, with a comfortable bottom margin
