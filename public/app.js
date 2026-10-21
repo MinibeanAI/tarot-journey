@@ -841,7 +841,8 @@ function renderFinal() {
   S.creatorRevealed = false;
   const stage = $('#creatorStage'); stage.classList.remove('revealed', 'flash');
   const cc = $('#creatorCard'); cc.className = 'flip-card big'; cc.innerHTML = flipCardHtml(S.manifest);
-  $('#manifestMeaning').innerHTML = `<b>XXII ${S.manifest.cn}</b> · ${S.manifest.meaning}`;
+  $('#manifestMeaning').textContent = S.manifest.meaning;
+  $('#manifestName').textContent = S.manifest.cn; $('#manifestName').classList.remove('show');
   $('#tapHint').textContent = '轻触揭晓';
   $('#creatorAfter').classList.remove('show');
   stage.classList.remove('merging', 'emerge'); $('#converge').innerHTML = '';
@@ -854,6 +855,7 @@ function revealCreator() {
   const stage = $('#creatorStage'), cc = $('#creatorCard');
   const finish = () => {
     stage.classList.remove('merging'); stage.classList.add('flash', 'revealed', 'emerge');
+    setTimeout(() => $('#manifestName').classList.add('show'), 500);
     setTimeout(() => cc.classList.add('flipped'), 120);
     setTimeout(() => { FX.burst(cc, { n: 120, speed: .34, life: 1500, size: 2.8 }); vibrate([20, 50, 30]); }, 380);
     setTimeout(() => {
@@ -912,8 +914,7 @@ function wrapText(ctx, text, x, y, maxW, lh, maxLines = 99) {
 async function renderShareCanvas() {
   const W = 1080, H = 1920, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
-  const CN = '"TJ Serif SC","Noto Serif SC","Noto Serif CJK SC","Songti SC",serif', EN = '"TJ Display","Cormorant Garamond",Georgia,serif', RM = '"TJ Cinzel","Cinzel",Georgia,serif';
-  try { await Promise.all([`700 40px ${CN}`, `400 40px ${CN}`, `600 40px ${EN}`, `400 40px ${RM}`].map(f => document.fonts.load(f, '创造者 XXII THE'))); } catch (_) {}
+  const CN = '-apple-system,"PingFang SC","Microsoft YaHei","Hiragino Sans GB","Noto Sans SC",sans-serif', EN = CN, RM = CN;
   // background
   let g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#8f86cc'); g.addColorStop(.45, '#cfc6ee'); g.addColorStop(1, '#f7efe8');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -922,15 +923,16 @@ async function renderShareCanvas() {
   ctx.fillStyle = '#fbf6ee'; ctx.font = `400 64px ${EN}`; ctx.letterSpacing = '10px';
   ctx.fillText('TAROT JOURNEY', W / 2, 150);
   ctx.letterSpacing = '6px'; ctx.font = `400 38px ${CN}`; ctx.fillText('塔罗显化之旅 · 第 23 张显化牌', W / 2, 218);
+  // manifestation name above the card (no numeral)
+  { const M0 = S.manifest || CREATOR; ctx.fillStyle = '#fbf6ee'; ctx.font = `700 56px ${CN}`; ctx.letterSpacing = '14px'; ctx.fillText(M0.cn, W / 2 + 7, 306); }
   // card
-  const cw = 640, ch = 1032, cx = (W - cw) / 2, cy = 290;
+  const cw = 640, ch = 982, cx = (W - cw) / 2, cy = 340;
   ctx.save(); ctx.shadowColor = 'rgba(50,40,120,.35)'; ctx.shadowBlur = 60; ctx.shadowOffsetY = 24;
   g = ctx.createLinearGradient(0, cy, 0, cy + ch); g.addColorStop(0, '#fdf9f1'); g.addColorStop(1, '#f1e6d4');
   ctx.fillStyle = g; rr(ctx, cx, cy, cw, ch, 44); ctx.fill(); ctx.restore();
   ctx.strokeStyle = '#d4b16c'; ctx.lineWidth = 5; rr(ctx, cx, cy, cw, ch, 44); ctx.stroke();
   ctx.strokeStyle = 'rgba(201,164,92,.75)'; ctx.lineWidth = 2; rr(ctx, cx + 18, cy + 18, cw - 36, ch - 36, 30); ctx.stroke();
-  ctx.fillStyle = '#a8823f'; ctx.font = `400 64px ${RM}`; ctx.letterSpacing = '6px'; ctx.fillText('XXII', W / 2, cy + 104);
-  const ax = cx + 48, ay = cy + 136, aw = cw - 96, ah = 680;
+  const ax = cx + 48, ay = cy + 86, aw = cw - 96, ah = 680;
   const M = S.manifest || CREATOR;
   const img = await loadImg(M.slug === 'creator' && window.CREATOR_DATA_URI ? window.CREATOR_DATA_URI : M.art[0]);
   const s = Math.max(aw / img.width, ah / img.height), iw = img.width * s, ih = img.height * s;
