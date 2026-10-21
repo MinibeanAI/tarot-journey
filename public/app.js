@@ -273,9 +273,9 @@ $$('[data-back]').forEach(b => b.addEventListener('click', back));
 $$('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
 
 /* ---------- Home ---------- */
-/* background music: CC0 "Ethereal Loop" by wipics (see assets/MUSIC_LICENSE.md) */
+/* background music: CC0 "Cathedral in the forest" by congusbongus (see assets/MUSIC_LICENSE.md) */
 const BGM = (() => {
-  const el = new Audio('assets/bgm_ethereal_loop.mp3'); el.loop = true; el.preload = 'none'; el.volume = 0;
+  const el = new Audio('assets/bgm_cathedral_forest.mp3'); el.loop = true; el.preload = 'none'; el.volume = 0;
   const VOL = .35; let fadeT = 0, unlocked = false;
   const fade = (to, ms, done) => {
     clearInterval(fadeT); const from = el.volume, t0 = performance.now();
