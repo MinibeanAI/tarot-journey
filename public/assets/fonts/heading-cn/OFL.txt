@@ -1,9 +1,9 @@
-Copyright (c) 2022--2024, atelierAnchor <https://atelier-anchor.com>,
-with Reserved Font Name <Smiley> and <得意黑>.
+Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
-http://scripts.sil.org/OFL
+https://scripts.sil.org/OFL
+
 
 -----------------------------------------------------------
 SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
@@ -92,4 +92,8 @@ DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 
-NOTE: title-cn.woff2 is a subset (web-font) of Smiley Sans (得意黑) by atelierAnchor, licensed under SIL OFL 1.1. Per the OFL Reserved Font Name clause, the modified (subsetted) font is renamed "TJ Title CN".
+-----------------------------------------------------------
+Modification note (塔罗显化之旅): this file is a subset of Noto Sans SC
+(variable, instanced at wght=250) containing only the glyphs used in the
+home title and the saved-image header. Per the OFL Reserved Font Name
+rules it has been renamed to "TJ Heading CN".

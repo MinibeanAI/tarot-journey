@@ -985,8 +985,8 @@ async function renderShareCanvas() {
   try { await Promise.race([document.fonts.load('500 64px "TJ Cinzel Title"', 'TAROT JOURNEY'), sleep(2000)]); } catch (_) {}
   ctx.fillStyle = '#fbf6ee'; ctx.font = `500 60px "TJ Cinzel Title",${EN}`; ctx.letterSpacing = '10px';
   ctx.fillText('TAROT JOURNEY', W / 2, 150);
-  try { await Promise.race([document.fonts.load('400 40px "TJ Title CN"', '塔罗显化之旅·第 23张牌'), sleep(2000)]); } catch (_) {}
-  ctx.letterSpacing = '6px'; ctx.font = `400 42px "TJ Title CN",${CN}`; ctx.fillText('塔罗显化之旅 · 第 23 张显化牌', W / 2, 218);
+  try { await Promise.race([document.fonts.load('250 42px "TJ Heading CN"', '塔罗显化之旅·第 23张牌'), sleep(2000)]); } catch (_) {}
+  ctx.letterSpacing = '10px'; ctx.font = `250 42px "TJ Heading CN",${CN}`; ctx.fillText('塔罗显化之旅 · 第 23 张显化牌', W / 2, 218);
   // manifestation name above the card (no numeral)
   { const M0 = S.manifest || CREATOR; ctx.fillStyle = '#fbf6ee'; ctx.font = `700 56px ${CN}`; ctx.letterSpacing = '14px'; ctx.fillText(M0.cn, W / 2 + 7, 306); }
   // card
