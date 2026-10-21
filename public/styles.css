@@ -467,3 +467,6 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 .rv-slide::-webkit-scrollbar{display:none}
 .rv-panel{margin-top:14px!important}
 .slot::before{display:none!important}   /* flip ceremony: no halo ring behind cards */
+
+/* manifestation affirmation: bigger, more prominent */
+.affirm{font-size:18px!important;line-height:1.6;font-weight:700;letter-spacing:.08em!important;color:var(--gold-3,#a8823f);margin:4px 0 20px!important}

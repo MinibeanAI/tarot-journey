@@ -943,7 +943,15 @@ async function renderShareCanvas() {
   let y = 1416;
   if (R.creatorMsg) { y += wrapText(ctx, R.creatorMsg, W / 2, y, 900, 58, 3) * 58; }
   else { const [l1, l2] = M.msg.split('<br>'); ctx.fillText(l1, W / 2, 1420); ctx.fillText(l2 || '', W / 2, 1480); y = 1538; }
-  if (R.title) {
+  const AF = R.affirm || (THEMES[S.theme || 'custom'] || THEMES.custom).affirm;
+  if (AF) {   // manifestation affirmation — prominent, gold, wrapped to max 2 lines
+    const body = AF.replace(/^显化宣言[：:]\s*/, '');
+    ctx.fillStyle = '#a8823f'; ctx.font = `400 28px ${CN}`; ctx.letterSpacing = '8px';
+    y += 26; ctx.fillText('✦ 显化宣言 ✦', W / 2, y); y += 62;
+    ctx.fillStyle = '#9a7432'; ctx.font = `700 42px ${CN}`; ctx.letterSpacing = '3px';
+    y += wrapText(ctx, body, W / 2, y, 940, 58, 2) * 58 + 4;
+  }
+  if (R.title && y < 1720) {   // skip title if space is tight so nothing collides with the footer
     ctx.fillStyle = '#a8823f'; ctx.font = `700 32px ${CN}`; ctx.letterSpacing = '3px';
     y += 4; wrapText(ctx, `✦ ${R.title} ✦`, W / 2, y, 900, 44, 1); y += 50;
   } else y += 28;
