@@ -686,10 +686,9 @@ function renderReveal() {
   $('#rvTrack').innerHTML = S.cards.map((c, i) => `
     <div class="rv-slide">
       <div class="rv-card"><span class="sparkle-top">✦</span><div class="flip-card flipped">${flipCardHtml(c)}</div></div>
-      <div class="rv-panel panel">
+      <div class="rv-panel">
         <div class="rv-pos">${POS[i].roman} · ${POS[i].cn}　${c.roman} ${c.cn}</div>
-        <p class="rv-meaning typing">${typeSpans(c[POS[i].key])}</p>
-        <p class="rv-relate"><span class="tag">与你的问题</span><span>${relateLine(c)}</span></p>
+        <p class="rv-meaning typing">${typeSpans(c[POS[i].key])}<span class="rv-relate">${relateLine(c)}</span></p>
       </div>
     </div>`).join('');
   requestAnimationFrame(() => rvCar.reset());

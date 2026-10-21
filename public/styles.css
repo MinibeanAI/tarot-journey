@@ -435,3 +435,13 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 .act-list p{margin:0;font-size:14px;line-height:1.7;color:var(--ink,#3a3466)}
 .manifest-meaning{margin:0 0 8px;text-align:center;font-size:13.5px;line-height:1.7;color:var(--ink-2,#5f5a8c)}
 .manifest-meaning b{color:var(--gold-3,#a8823f);letter-spacing:.1em}
+
+/* reveal: simplified layout — title → card → text → tabs → button */
+.rv-backdrop,.rv-arrow,.rv-hint{display:none!important}
+.rv-track{padding:0!important;gap:0!important}
+.rv-slide{flex:0 0 100%!important;opacity:1!important;transform:none!important;padding:0 28px;box-sizing:border-box}
+.rv-panel{background:none!important;box-shadow:none!important;border:0!important;margin-top:18px;padding:0;color:#fff}
+.rv-panel .rv-pos{color:#ffe7b0;text-shadow:0 1px 6px rgba(40,30,100,.7)}
+.rv-panel .rv-meaning,.rv-panel .rv-relate{color:#fff;text-shadow:0 1px 3px rgba(40,30,100,.85),0 0 14px rgba(50,40,120,.6)}
+.rv-panel .rv-relate{border:0;margin:0 0 0 .3em;padding:0;font:inherit;display:inline}
+.rv-panel .rv-meaning{font-weight:600;text-shadow:0 1px 2px rgba(30,22,80,.95),0 0 8px rgba(40,30,100,.85),0 0 18px rgba(40,30,100,.6)}
