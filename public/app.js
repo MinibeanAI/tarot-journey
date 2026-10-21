@@ -360,7 +360,7 @@ const spread = $('#spread'), pickHint = $('#pickHint'), slotsEl = $('#slots');
 const STEP_PX = 58;
 const P = { els: [], pos: 0, phase: 'idle', run: 0, anim: null, drag: null, raf: 0, focusIdx: -1, busy: false, shufT0: 0 };
 function shuffleArr(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-S.mode = '78';
+S.mode = '22';
 const pool = () => S.mode === '22' ? DECK.filter(c => !c.minor) : DECK;
 document.querySelectorAll('#qMode [data-mode]').forEach(b => b.addEventListener('click', () => {
   if (S.mode === b.dataset.mode) return;
@@ -678,6 +678,13 @@ function carousel(track, dots, onChange) {
     if (m.moved) track.addEventListener('click', ev => { ev.stopPropagation(); ev.preventDefault(); }, { capture: true, once: true });
   };
   track.addEventListener('pointerup', end); track.addEventListener('pointercancel', end);
+  // touch swipe (explicit, so it works even with nested vertical scrolling inside slides)
+  let td = null;
+  track.addEventListener('touchstart', e => { const t = e.touches[0]; td = { x: t.clientX, y: t.clientY, start: idx() }; }, { passive: true });
+  track.addEventListener('touchend', e => {
+    if (!td) return; const t = e.changedTouches[0], dx = t.clientX - td.x, dy = t.clientY - td.y, m = td; td = null;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) goTo(m.start + (dx < 0 ? 1 : -1)); else goTo(m.start);
+  }, { passive: true });
   return { reset() { cur = -1; track.scrollLeft = 0; upd(); }, goTo, idx };
 }
 

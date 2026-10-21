@@ -459,3 +459,10 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 .rv-dots{top:calc(max(22px,env(safe-area-inset-top)) + 70px)!important;bottom:auto!important}
 .rv-track{top:calc(max(22px,env(safe-area-inset-top)) + 100px)!important}
 .rv-card{margin-top:10px!important}
+/* reveal v4: bigger card (~77% width), hide sparkle, vertical scroll if needed */
+.rv-card .sparkle-top{display:none!important}
+.rv-card .flip-card{--cw:min(77vw,320px)!important}
+.rv-track{bottom:96px!important;touch-action:pan-y}
+.rv-slide{overflow-y:auto;overflow-x:hidden;padding-bottom:16px;scrollbar-width:none}
+.rv-slide::-webkit-scrollbar{display:none}
+.rv-panel{margin-top:14px!important}
