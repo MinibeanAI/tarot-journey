@@ -1,0 +1,27 @@
+{
+ "placement": {},
+ "compatibility_date": "2026-09-01",
+ "compatibility_flags": [],
+ "usage_model": "standard",
+ "tags": [],
+ "tail_consumers": [],
+ "logpush": false,
+ "annotations": {
+  "workers/triggered_by": "upload"
+ },
+ "bindings": [
+  {
+   "name": "ASSET_REF",
+   "text": "dd91b9841eddd26d5026ecbc080168a82e02f812",
+   "type": "plain_text"
+  },
+  {
+   "name": "DEEPSEEK_API_KEY",
+   "type": "secret_text"
+  },
+  {
+   "name": "OPENAI_API_KEY",
+   "type": "secret_text"
+  }
+ ]
+}

@@ -506,3 +506,18 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;paddin
 /* home CN title: Smiley Sans 得意黑 (SIL OFL, self-hosted subset) */
 @font-face{font-family:"TJ Title CN";src:url(assets/fonts/title-cn/title-cn.woff2) format("woff2");font-display:swap}
 .brand-cn{font-family:"TJ Title CN",var(--cn)!important;font-size:31px!important;letter-spacing:.12em!important}
+/* ---- reading v2: 核心回答 + 综合解读 + 可展开逐张解读 ---- */
+.rd-notice{margin:0 0 12px!important;padding:6px 10px;border-radius:10px;background:rgba(201,164,92,.14);color:var(--gold-3,#a8823f);font-size:12.5px;text-align:center;letter-spacing:.06em}
+.rd-answer p{font-size:15.5px;line-height:1.75;color:var(--indigo-2,#4b4596)}
+.rd-cards{margin:2px 0 10px;border-top:1px dashed rgba(201,164,92,.5);padding-top:10px}
+.rd-cards summary{cursor:pointer;list-style:none;font-size:13px;letter-spacing:.12em;color:var(--indigo-2,#4b4596);text-align:center;padding:6px 0;-webkit-tap-highlight-color:transparent}
+.rd-cards summary::-webkit-details-marker{display:none}
+.rd-cards summary::after{content:' ▾';color:var(--gold-3,#a8823f)}
+.rd-cards[open] summary::after{content:' ▴'}
+.rd-cards[open] summary{margin-bottom:8px}
+.rd-card{margin:0 0 12px}
+.rd-cpos{display:block;font-size:12px;letter-spacing:.12em;color:var(--gold-3,#a8823f);font-weight:700;margin-bottom:3px}
+.rd-cpos i{font-style:normal;font-weight:400;margin-left:8px;padding:0 7px;border-radius:999px;background:var(--lav-3,#ece8fb);color:var(--indigo-2,#4b4596);font-size:11px}
+.rd-card p{margin:0!important}
+.rd-reflect{margin:6px 0 0!important;font-size:13.5px;color:var(--ink-2,#5f5a8c);text-align:center}
+.rd-answer p,.rd-card p,.rd-reflect{font-family:var(--kai)!important;font-weight:400!important}

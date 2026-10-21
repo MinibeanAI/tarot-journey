@@ -150,14 +150,15 @@ const MINOR_TXT = {
     ['稳健富足', '你拥有稳健经营与创造财富的能力', '用长期主义去经营你的事业与资源'],
   ],
 };
+const MINOR_POS = (suit, ri, k) => ((window.TAROT_MINOR_POS || {})[`${suit}_${ri}`] || [])[k] || '';
 MINOR_SUITS.forEach((su, si) => MINOR_RANKS.forEach((rk, ri) => {
   const [kw, m, ap] = MINOR_TXT[su.key][ri], num = String(ri + 1).padStart(2, '0');
   DECK.push({
     n: 100 + si * 14 + ri, minor: true, suit: su.key, roman: rk[2],
     en: `${rk[0]} OF ${su.en}`, cn: `${su.cn}${rk[1]}`, kw, sym: su.sym,
-    past: `过去，${m}，这份经历仍在影响着你。`,
-    present: `此刻，${m}。`,
-    future: `接下来，${m}，它会带你走向新的阶段。`,
+    past: MINOR_POS(su.key, ri, 0) || `过去，${m}，这份经历仍在影响着你。`,
+    present: MINOR_POS(su.key, ri, 1) || `此刻，${m}。`,
+    future: MINOR_POS(su.key, ri, 2) || `接下来，${m}，它会带你走向新的阶段。`,
     apply: ap, meaning: m,
     art: [`assets/card_${su.key}_${num}.jpg`, '50% 42%'], base: TPL_BASES[ri % TPL_BASES.length],
   });
@@ -174,13 +175,22 @@ const MANIFESTS = [
 const MANIFEST_OK = window.TAROT_MANIFEST_ART || { creator: 'assets/card_creator.jpg' };
 const MANIFEST_POOL = MANIFESTS.filter(m => MANIFEST_OK[m.slug]).map(m => ({ ...m, n: 22, roman: 'XXII', art: [MANIFEST_OK[m.slug], '50% 42%'] }));
 const CREATOR = MANIFEST_POOL.find(m => m.slug === 'creator') || MANIFEST_POOL[0];
-function pickManifest(cards) {
+/* 23rd card: chosen by meaning. Deterministic mapping (kept identical to worker/index.js MAJ_MANI / SUIT_MANI);
+   the AI may override it with a better fit (manifest_cn in the reading response). */
+const MANI_ORDER = ['creator', 'dreamweaver', 'lightbearer', 'voyager', 'gardener', 'phoenix'];
+const MAJ_MANI = [3,0,1,4,0,2,1,3,5,2,3,2,5,5,4,5,5,1,2,0,5,3];
+const SUIT_MANI = { wands: 3, cups: 1, swords: 2, pentacles: 4 };
+const THEME_MANI = { career: 0, wealth: 4, love: 1, self: 2, custom: 0 };
+function pickManifest(cards, theme) {
   if (params.has('manifest')) { const f = MANIFEST_POOL.find(m => m.slug === params.get('manifest')); if (f) return f; }
-  let h = params.has('seed') ? (+params.get('seed') || 1) : Date.now();
-  cards.forEach(c => { h = (Math.imul(h ^ (c.n + 1), 2654435761) + 0x9e3779b9) >>> 0; });
-  h ^= h >>> 15; h = Math.imul(h, 2246822519) >>> 0; h ^= h >>> 13;
-  return MANIFEST_POOL[(h >>> 0) % MANIFEST_POOL.length];
+  const score = [0, 0, 0, 0, 0, 0], W = [1, 1.5, 2];
+  cards.forEach((c, i) => { const k = c.minor ? SUIT_MANI[c.suit] : MAJ_MANI[c.n]; score[k == null ? 0 : k] += W[i] || 1; });
+  score[THEME_MANI[theme || 'custom'] ?? 0] += .75;
+  const order = score.map((v, i) => [v, i]).sort((x, y) => y[0] - x[0] || x[1] - y[1]);
+  for (const [, i] of order) { const f = MANIFEST_POOL.find(m => m.slug === MANI_ORDER[i]); if (f) return f; }
+  return CREATOR;
 }
+const manifestByCn = cn => MANIFEST_POOL.find(m => m.cn === String(cn || '').trim());
 
 /* ---------- SVG ---------- */
 const G = '#f3dca0';
@@ -707,9 +717,18 @@ function carousel(track, dots, onChange) {
 }
 
 /* ---------- Reveal: swipe between the three revealed cards ---------- */
+/* core phrase of the user's question, e.g. 「我该不该辞职去做自己的插画工作室？」→「辞职去做自己的插画工作室」 */
+function qFocus(q) {
+  let t = String(q || '').trim().split(/[，,。！!？?；;\n]/).filter(x => x.trim()).sort((a, b) => b.length - a.length)[0] || '';
+  const lead = /^(我想知道|应不应该|可不可以|怎样才能|请问|想知道|我现在|现在|今年|最近|接下来|该不该|要不要|能不能|应该|是否|如何|怎么样|怎样|怎么|会不会|到底|还要|我|该|还|在|想|去|能)+/;
+  for (let i = 0; i < 4; i++) t = t.replace(lead, '');
+  t = t.replace(/(接下来|将来|以后)?(会|该|要)?(如何发展|怎么发展|会如何|会怎样|怎么办|是什么|为什么|吗|呢|吧|么|了|好|合适|可以|应该|才好)+$/, '').replace(/^[「“"']|[」”"']$/g, '').trim();
+  const arr = [...t];
+  return arr.length < 2 ? '' : arr.length > 12 ? arr.slice(0, 11).join('') + '…' : t;
+}
 function relateLine(card) {
-  const th = THEMES[S.theme || 'custom'];
-  return `${th.prefix}${card.apply}。`;
+  const th = THEMES[S.theme || 'custom'], f = qFocus(S.question);
+  return f ? `关于「${f}」：${card.apply}。` : `${th.prefix}${card.apply}。`;
 }
 const typeSpans = txt => [...txt].map((ch, i) => `<span style="--d:${i * 32}ms">${esc(ch)}</span>`).join('');
 const rvCar = carousel($('#rvTrack'), $('#rvDots'), i => rvChanged(i));
@@ -748,22 +767,28 @@ const DEFAULT_QUOTE = '你不再等待一个确定的答案，<br>而是开始�
 const AI_TIMEOUT_MS = 40000, MIN_LOADING_MS = 1500;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+const SUIT_DOMAIN = { wands: '权杖·行动与热情', cups: '圣杯·情感与关系', swords: '宝剑·思考与沟通', pentacles: '星币·现实与资源' };
+const THEME_FALLBACK = {
+  career: { acts: ['今天：写下「{f}」里你最想验证的一件事。', '本周：找一位同行聊 20 分钟，问一个具体问题。', '持续：每周复盘一次投入与收获，再调整方向。'], reflect: '如果不考虑别人的眼光，你会怎么选？' },
+  wealth: { acts: ['今天：记下今天的每一笔支出，标出可省项。', '本周：为「{f}」设一个具体金额和截止日。', '持续：每月底复盘一次收支，微调下月计划。'], reflect: '这笔钱，你真正想用它换回什么？' },
+  love:   { acts: ['今天：写下这段关系里你最在意的一个瞬间。', '本周：用「我感到……」说出一次自己的需要。', '持续：观察两周对方的回应，再决定投入多少。'], reflect: '在这段关系里，你最想被怎样对待？' },
+  self:   { acts: ['今天：留十分钟独处，只写下此刻的感受。', '本周：做一件让身体放松的小事，比如散步。', '持续：每晚记一件今天做到的小事。'], reflect: '此刻的你，最需要被自己怎样照顾？' },
+  custom: { acts: ['今天：把「{f}」拆成一个能马上做的小步骤。', '本周：收集两条可靠信息，再做判断。', '持续：每周回看一次，记录心里的变化。'], reflect: '如果答案已经在你心里，它会是什么？' },
+};
 function templateReading(question, theme, cards) {
-  const th = THEMES[theme || 'custom'];
-  const [a, b, c] = cards;
-  const journey = `「${a.kw} → ${b.kw} → ${c.kw}」`;
-  const trim = s => s.replace(/[。！]$/, '');
-  const paragraphs = [
-    `这是一段<span class="journey">${journey}</span>的旅程。`,
-    `过去的${a.cn}告诉你：${trim(a.past)}；现在的${b.cn}提醒你：${trim(b.present)}；而未来的${c.cn}预示着：${c.future}`,
-    `关于「${esc(question)}」，${th.prefix || '对于这件事，'}三张牌指向同一个方向——${trim(a.apply)}，然后${trim(b.apply)}。当你这样做时，${c.cn}所描绘的那个自己，会比想象中来得更快。`,
-  ];
-  const actions = [
-    `今天：用 10 分钟写下你对「${th.focus}」最真实的期待。`,
-    `本周：做一件与「${b.kw}」有关的小行动，哪怕很小。`,
-    `持续：每晚睡前读一遍你的显化宣言。`,
-  ].map(esc);
-  return { source: 'template', title: '', journey, paragraphs, actions, quote: S.manifest.msg, creatorMsg: '', affirm: th.affirm };
+  const th = THEMES[theme || 'custom'], fb = THEME_FALLBACK[theme || 'custom'] || THEME_FALLBACK.custom;
+  const [a, b, c] = cards, F = qFocus(question) || th.focus;
+  const trim = s => String(s).replace(/[。！]$/, '');
+  const dom = x => x.minor ? SUIT_DOMAIN[x.suit] : '大阿卡纳·人生课题';
+  const cardsOut = cards.map((x, i) => ({ position: POS[i].cn, name: x.cn, keyword: x.kw, reading: `${x.cn}（${dom(x)}）：${x[POS[i].key]}` }));
+  const answer = `关于「${F}」，牌面的倾向是：从「${a.kw}」走到「${b.kw}」，此刻的关键在于${trim(b.apply)}。`;
+  const synthesis = `${a.cn}说明过去的「${a.kw}」把你带到了今天；${b.cn}点出此刻的课题——${trim(b.apply)}；如果沿着这个方向走，${c.cn}提示未来可能逐渐出现「${c.kw}」的样子。这是倾向，不是定局，选择权一直在你手里。`;
+  const actions = fb.acts.map(x => x.replace('{f}', F));
+  return {
+    source: 'template', notice: 'AI 暂时繁忙，以下为基础解读', title: `从${a.kw}到${c.kw}`,
+    journey: `「${a.kw} → ${b.kw} → ${c.kw}」`, answer, cards: cardsOut, synthesis, actions, reflect: fb.reflect,
+    quote: S.manifest.msg, creatorMsg: '', affirm: th.affirm,
+  };
 }
 
 async function fetchAiReading(question, theme, cards) {
@@ -774,23 +799,29 @@ async function fetchAiReading(question, theme, cards) {
     const res = await fetch('api/reading', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctrl ? ctrl.signal : undefined,
       body: JSON.stringify({
-        question: question.slice(0, 120), theme: theme || 'custom',
+        v: 2, question: question.slice(0, 120), theme: theme || 'custom',
         cards: cards.slice(0, 3).map((c, i) => ({ position: POS[i].key, name_cn: c.cn, name_en: c.en, numeral: c.roman })),
         manifest: { name_cn: S.manifest.cn, name_en: S.manifest.en },
       }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(`api ${res.status} ${data.error || ''}`);
-    if (!Array.isArray(data.reading) || !data.reading.length || !Array.isArray(data.actions) || !data.actions.length) throw new Error('bad payload');
     const th = THEMES[theme || 'custom'];
     const msg = String(data.creator_message || '').trim();
-    return {
-      source: 'ai', model: data.model || '', title: String(data.title || '').trim(),
-      journey: `「${cards.map(c => c.kw).join(' → ')}」`,
-      paragraphs: data.reading.slice(0, 3).map(esc),
-      actions: data.actions.slice(0, 3).map(esc),
-      quote: msg ? esc(msg) : S.manifest.msg, creatorMsg: msg, affirm: th.affirm,
-    };
+    const actions = Array.isArray(data.actions) ? data.actions.filter(Boolean).slice(0, 3).map(x => esc(String(x))) : [];
+    const base = { source: 'ai', model: data.model || '', title: String(data.title || '').trim(), journey: `「${cards.map(c => c.kw).join(' → ')}」`, actions };
+    const isV2 = data.answer && Array.isArray(data.cards) && data.cards.length === 3 && data.synthesis;
+    if (isV2) {
+      const m = manifestByCn(data.manifest_cn); if (m) S.manifest = m;   // AI picked the 23rd card by meaning
+      const aff = String(data.affirmation || '').trim().replace(/^显化宣言[：:]\s*/, '');
+      return { ...base,
+        answer: String(data.answer).trim(), synthesis: String(data.synthesis).trim(), reflect: String(data.reflect || '').trim(),
+        cards: data.cards.slice(0, 3).map((c, i) => ({ position: POS[i].cn, name: cards[i].cn, keyword: String(c.keyword || cards[i].kw).trim(), reading: String(c.reading || '').trim() })),
+        quote: msg ? esc(msg) : S.manifest.msg, creatorMsg: msg, affirm: aff ? `显化宣言：${aff}` : th.affirm };
+    }
+    // legacy (v1) response shape — kept for cache/rollback compatibility
+    if (!Array.isArray(data.reading) || !data.reading.length || !actions.length) throw new Error('bad payload');
+    return { ...base, paragraphs: data.reading.slice(0, 3).map(esc), quote: msg ? esc(msg) : S.manifest.msg, creatorMsg: msg, affirm: th.affirm };
   } finally { clearTimeout(timer); }
 }
 
@@ -810,7 +841,7 @@ async function generateReading(question, theme, cards) {
 
 let loadTimer;
 function startReading() {
-  S.manifest = pickManifest(S.cards);
+  S.manifest = pickManifest(S.cards, S.theme);
   go('loading');
   $('#loadBox').hidden = false; $('#errBox').hidden = true;
   const subs = ['塔顶的星光正在汇聚…', '正在读取过去、现在与未来的线索…', '为你生成第 23 张显化牌…'];
@@ -843,10 +874,20 @@ function renderFinal() {
         <span class="rc-kw">✦ ${c.kw}</span><p class="rc-mean">${c[POS[i].key]}</p></div>
     </div>`).join('');
   requestAnimationFrame(() => recapCar.reset());
-  const SUBS = null;  // paragraphs don't map 1:1 to cards, so no per-card subheads
-  $('#reading').innerHTML = `<div class="rd-head"><span class="rd-ico">☾</span><b>解读</b></div>` +
-    (r.title ? `<p class="r-title"><span class="journey">✦ ${esc(r.title)}</span></p>` : '') +
-    r.paragraphs.map((p, i) => `<div class="rd-para">${SUBS ? `<span class="rd-sub">${SUBS[i]}</span>` : ''}<p>${p}</p></div>`).join('');
+  let body = '';
+  if (r.answer) {
+    body = (r.notice ? `<p class="rd-notice">${esc(r.notice)}</p>` : '') +
+      (r.title ? `<p class="r-title"><span class="journey">✦ ${esc(r.title)}</span></p>` : '') +
+      `<div class="rd-para rd-answer"><span class="rd-sub">核心回答</span><p>${esc(r.answer)}</p></div>` +
+      `<div class="rd-para"><span class="rd-sub">综合解读</span><p>${esc(r.synthesis)}</p></div>` +
+      `<details class="rd-cards"><summary>展开三张牌逐张解读</summary>` +
+      r.cards.map(c => `<div class="rd-card"><span class="rd-cpos">${esc(c.position)} · ${esc(c.name)}${c.keyword ? `<i>${esc(c.keyword)}</i>` : ''}</span><p>${esc(c.reading)}</p></div>`).join('') +
+      `</details>` + (r.reflect ? `<p class="rd-reflect">✦ 问问自己：${esc(r.reflect)}</p>` : '');
+  } else {
+    body = (r.title ? `<p class="r-title"><span class="journey">✦ ${esc(r.title)}</span></p>` : '') +
+      (r.paragraphs || []).map(p => `<div class="rd-para"><p>${p}</p></div>`).join('');
+  }
+  $('#reading').innerHTML = `<div class="rd-head"><span class="rd-ico">☾</span><b>解读</b></div>` + body;
   const CHIP = { '今天': ['今天', '☀'], '本周': ['本周', '✿'], '持续': ['持续', '∞'] }, DEF = [['今天', '☀'], ['本周', '✿'], ['持续', '∞']];
   $('#actionsCard').innerHTML = `<div class="rd-head"><span class="rd-ico">✦</span><b>行动建议</b></div><ol class="act-list">` +
     r.actions.map((a, i) => {
@@ -855,7 +896,7 @@ function renderFinal() {
     }).join('') + `</ol>`;
   $('#quote').innerHTML = r.quote; $('#affirm').textContent = r.affirm;
   $('#s-final').dataset.source = r.source;
-  $('.proto-note').textContent = r.source === 'ai' ? '解读由 AI 实时生成，仅供自我觉察与娱乐参考' : '离线模式：解读由本地模板生成';
+  $('.proto-note').textContent = r.source === 'ai' ? '解读由 AI 实时生成，仅供自我觉察与娱乐参考，不构成医疗、投资或法律建议' : 'AI 暂时繁忙，以上为基础解读，可稍后再抽一次获取 AI 解读';
   S.creatorRevealed = false;
   const stage = $('#creatorStage'); stage.classList.remove('revealed', 'flash');
   const cc = $('#creatorCard'); cc.className = 'flip-card big'; cc.innerHTML = flipCardHtml(S.manifest);
